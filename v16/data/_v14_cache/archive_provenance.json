@@ -1,0 +1,52 @@
+{
+ "source": "gray_scott_data.tar.gz",
+ "seeds": [
+  {
+   "seed": 0,
+   "float_u_mean": 0.6995106579087694,
+   "float_u_std": 0.28976275622888736,
+   "float_u_std_c": 0.29295342939641617,
+   "float_v_std_c": 0.1067402296382916,
+   "bool_fill": 0.6378,
+   "agree_u_med": 0.5688,
+   "agree_v_med": 0.4066,
+   "agree_v_gt0": 0.6145,
+   "agree_u_gt_half": 0.6312
+  },
+  {
+   "seed": 5,
+   "float_u_mean": 0.6993479684895297,
+   "float_u_std": 0.29032951775500176,
+   "float_u_std_c": 0.29345220213587025,
+   "float_v_std_c": 0.10835067374735084,
+   "bool_fill": 0.9181,
+   "agree_u_med": 0.5025,
+   "agree_v_med": 0.4919,
+   "agree_v_gt0": 0.683,
+   "agree_u_gt_half": 0.6516
+  },
+  {
+   "seed": 10,
+   "float_u_mean": 0.6991852790702902,
+   "float_u_std": 0.2919914331331469,
+   "float_u_std_c": 0.2950285698518051,
+   "float_v_std_c": 0.11280530558429877,
+   "bool_fill": 0.9125,
+   "agree_u_med": 0.5041,
+   "agree_v_med": 0.4869,
+   "agree_v_gt0": 0.6547,
+   "agree_u_gt_half": 0.6501
+  }
+ ],
+ "clip_offset": 14,
+ "members": [
+  "data_make.py",
+  "gray_scott_0.npz",
+  "gray_scott_10.npz",
+  "gray_scott_5.npz",
+  "gray_scott_bool_0.npz",
+  "gray_scott_bool_10.npz",
+  "gray_scott_bool_5.npz"
+ ],
+ "note": "归档 bool 场 (v13 参考侧直接搬的) 与同目录浮点场的任何简单二值化一致率都在 0.5 附近 -> 其生成管线不在归档中, 不可复现; 且三个浮点场统计量几乎相同 -> 归档 data_make.py 的 IC 硬编码, 其 np.random.seed/random.seed 是死代码, 三个\"种子\"同出一个 IC。"
+}
