@@ -758,7 +758,7 @@ def plot_all(data, s2, s3a, s3b, s3c, s6, s4, cc, loop):
     plt.suptitle('空无到照见 · v15 — 因果链 (函数式派生) + 闭环 spiral_loop()',
                  fontsize=15)
     plt.tight_layout()
-    out_png = os.path.join(_OUTPUT_DIR, 'spiral_v15.png')
+    out_png = os.path.join(_OUTPUT_DIR, 'spiral_v16.png')
     plt.savefig(out_png, dpi=110, bbox_inches='tight')
     plt.close(fig)
     print(f"\n  图像已保存: {out_png}")

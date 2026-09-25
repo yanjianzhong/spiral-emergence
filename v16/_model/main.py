@@ -72,7 +72,7 @@ from spiral_metric_v16 import (collect_metrics_v16,
 def main():
     t_start = time.time()
     print("=" * 76)
-    print("  空无到照见 · v15")
+    print("  空无到照见 · v16")
     print("  量化指标评估层 (三层体检报告) —— 不加任何新物理阶段")
     print("  阶段间因果链 (函数式派生) | 闭环螺旋 spiral_loop()")
     print("  负对照与交叉检验: F1 跨边界 c | F2a h/J 扫描 | F5 双路径对表 | F6 零模型对照族")
@@ -755,10 +755,10 @@ def plot_all(data, s2, s3a, s3b, s3c, s6, s4, cc, loop):
             family='monospace', transform=ax.transAxes)
     ax.set_title('因果链: 派生值 vs 手工值\n(≠ 表示派生修正了原来的随手取值)')
 
-    plt.suptitle('空无到照见 · v15 — 因果链 (函数式派生) + 闭环 spiral_loop()',
+    plt.suptitle('空无到照见 · v16 — 因果链 (函数式派生) + 闭环 spiral_loop()',
                  fontsize=15)
     plt.tight_layout()
-    out_png = os.path.join(_OUTPUT_DIR, 'spiral_v15.png')
+    out_png = os.path.join(_OUTPUT_DIR, 'spiral_v16.png')
     plt.savefig(out_png, dpi=110, bbox_inches='tight')
     plt.close(fig)
     print(f"\n  图像已保存: {out_png}")

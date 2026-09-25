@@ -15,6 +15,46 @@ spiral_metric_v16.py
 ====================
 指标层 (体检报告) —— 与 spiral_model_v16.py 配对, 由它 import。
 
+【v16 在指标侧加了什么 —— 先读这一节】
+
+  v16 是 v15 之上的增量 (B1 / B2 / B3), **既有指标与守卫的判定一条都没改**
+  (冻结核对: v15 的 54 条计分守卫按名字一条不少、无一翻成未通过)。
+
+    B1 · 新增 1 条指标 + 3 条计分守卫 (三个工作包里只有 B1 动本层):
+        指标 `metric_l1_void_link` 以 `1.8 14 L1 空无到链的下游连线 (重叠曲线)`
+        登记在第一层; 三条计分守卫是
+            `B1 主判据: L1 域态重叠对 h/J 单调上升且 h/J=32 时 > 0.99`
+            `B1 推离: 转动 L1 局部态后重叠跌破 0.9`
+            `B1 维数: dim_full 与 2**L 相符 (首次被真消费)`
+        ⇒ 第一层由 5 项变 6 项, 指标 18/18 -> **19/19**; 计分守卫 54 -> **57**。
+        **口径限制 (不许并成一句)**: "等权大态 = h/J->inf 的基态"是**数学事实**;
+        把它叫"L1 到 L2 的因果连线"是**口径选择**; "推离"守卫的 overlap 由
+        **被转动的态直接算出**, 标定的是**灵敏度尺度**, 不是独立的物理证伪 ——
+        它必须与同层主判据、维数守卫一起读。
+        `_NEG_CTRL_TABLE` 的 L1 行因此被**改写** (第 2~6 列: `'缺'` -> `'已补'`
+        等), 其余 12 行逐元素未动, **列结构不变** (仍 6/7 元素参差 ⇒ 不加第 8 列)。
+        (注: `extras.py` 里该函数的 docstring 把序号写成 `2.14`, 与它实际登记的
+         第一层不符 —— **以注册表为准**。)
+    B2 · 不在本层: `_v16_cmera_gaussian.py` 是独立可执行体, 本层不 import 它。
+    B3 · 口径对齐账本 `_v16_claim_ledger.py` 读的是**本层进程内**的
+        METRICS / GUARDS。同进程实测: 指标 27 / 守卫 77 / 负对照 13;
+        孤儿主张 9 条 / 分母 19 条 ((a) 只报不判); (b)(c)(d)(e) 全通过;
+        L1 的口径匹配率由"无计分指标"填成 **1/1** (合计 9/18 -> 10/19)。
+        ⚠️ **独立进程跑会退 3, 但成因不是"空判"**: `_SAME_SOURCE_REGISTRY` 与
+        `_NEG_CTRL_CLAIM` 是**静态字面量**, 空注册表下引用不到运行时对象 ⇒
+        (c) 报 1 条、**(e) 报 8 条假失败**。该脚本**必须**与全流程同进程使用。
+        (上述"改写了 L1 行"与"独立跑退 3 的成因"都按**代码实测**写, 与 v16 审计
+         文档的现行措辞不一致 —— 二者冲突时**以代码为准**。)
+
+  【本版口径 (源 = `_v16_run.log`, 2026-09-25)】
+      指标 **19/19 达标** = 第一层 6/6 (另有诊断项 2 项: 1.6 预算漂移 /
+      1.7 chi 瓶颈) + 第二层 13/13; 第三层 6 项**全部是诊断项** (passed=None),
+      不进分母。
+      守卫 **57/57 = 100.0%** (计分); 另有 20 条诊断项, 其中 **15 条设计上就该
+      失败** (v15 是 17 条 —— 翻过来的那 2 条正是 B1 瞄准的 W11 "L1 有到下游的
+      因果通路" 与 W6 "负对照逐层覆盖")。
+      负对照台账 **13 条覆盖 7/7 层, 缺口 []** (W12 之前 5/7; v15 是 12 条 6/7)。
+
 【本文件解决什么】
   把"打印一个数字"变成"可证伪的判定"。每个量绑上
       定义 / 计算方法 / 参照(基线) / 目标 / 实测 / 判定
@@ -25,39 +65,53 @@ spiral_metric_v16.py
 【为什么单独一个文件, 而不是改 spiral_metric.py?】
   已发布的体检报告必须**保持可复现**。spiral_metric.py 被多个版本共用,
   在里面动一行, 所有历史数字的前提就变了。所以本文件是它的
-  **自包含冻结副本 + 本层新增** —— 文件里那段 `from spiral_metric import (...)`
+  **自包含冻结副本 + 本层新增** —— 原件里那段 `from spiral_metric import (...)`
   已整体注释掉, 保留下来是作为**出处留痕**, 不是活的依赖。
   代价是两份可能分歧; 两个文件都是冻结快照, 所以这个代价可接受,
   但读者必须知道它存在。
 
-【文件结构 (按出现顺序)】
-  1 注册表与打印       record_metric / record_guard / guard_pass_rate /
-                       _jsonable / print_health_report
-  2 维度无关辅助函数   _band_power / _xi_from_fft / _char_scale /
-                       _shape_residual / _mode_census / _delta2 / _first_zero
-  3 既有指标函数       1.3 谱隙闭合 / 1.4 MERA 一致性 / 2.1 因果链 RMSE /
-                       2.2 纠缠熵 KL / 2.3 关联衰减指数 / 2.4 Jordan 块收敛率
-                       (+ exact_ground_state / tfi_periodic_sparse /
-                        boundary_correlation_graph 这三个共用求解器)
-  4 v14 第一层分布层   metric_central_charge_error_seeds /
-                       metric_conformal_invariance_seeds /
-                       metric_design_robustness / metric_budget_diagnostic /
-                       metric_chi_bottleneck
-  5 第三层描述子与梯子 structural_descriptors / descriptor_distance /
-                       _series_lag_agreement / tier3_structural_ladder (A/B/C)
-  6 v14 负对照         F2a h/J 扫描 / F1 跨边界 twist / F5 一致性检查束
-  7 v15 新增           metric_spectral_central_charge (W3b 能谱族第二把尺子) /
-                       _NEG_CTRL_TABLE + metric_negative_control_ledger (W6 台账)
-  8 编排与作图         collect_metrics_v16 (总入口) / plot_metrics_v16 (20 面板)
+  **v16 的拆分**: 实体已移到 `_metric/` 的 8 个子模块 (见下), 本文件退化为
+  **门面** —— 版权头 + 本说明 + 一次性 re-export + 文件末尾的赋值转发。
+  拆分前的单文件原件冻结在 `v16/_baseline/orig/spiral_metric_v16.py` (那段被
+  注释掉的 `from spiral_metric import` 现在留在那里)。各版本目录自包含:
+  v16 **不 import** v15 的任何代码。
 
-【报告口径 (v15 实测: 指标 18/18, 守卫 54/54)】
-  指标 18/18 达标 = 第一层 1.1~1.5 (5 项) + 第二层 2.1~2.13 (13 项)。
-      第三层 3.1~3.6 **全部是诊断项** (passed=None), 不进分母。
-      另有第一层诊断项 1.6 预算漂移 / 1.7 chi 瓶颈归因。
-  守卫 54/54 = **计分守卫**; 另有 20 条诊断项, 其中 **17 条设计上就该失败**
-      (如 V6: 派生 N 之后变体 A 收敛到 x*=0, 权重失去方向)。
+【文件结构 (v16 拆分后 —— 实体在 `_metric/`, 本文件只 re-export)】
+  registry.py    注册表与打印: record_metric / record_guard / guard_pass_rate /
+                 _jsonable / print_health_report; 维度无关辅助函数
+                 (_band_power / _xi_from_fft / _char_scale / _shape_residual /
+                  _mode_census / _delta2 / _first_zero) 与各常量
+  solvers.py     共用求解器 (exact_ground_state / tfi_periodic_sparse /
+                 boundary_correlation_graph) + 既有指标 1.3 谱隙闭合 /
+                 1.4 MERA 一致性 / 2.1 因果链 RMSE / 2.2 纠缠熵 KL /
+                 2.3 关联衰减指数 / 2.4 Jordan 块收敛率 / metrics_for_json
+  layer1.py      v14 第一层分布层: metric_central_charge_error_seeds /
+                 metric_conformal_invariance_seeds / metric_design_robustness /
+                 metric_budget_diagnostic / metric_chi_bottleneck
+  tier3_desc.py  第三层描述子与距离: structural_descriptors /
+                 descriptor_distance / _series_lag_agreement 及各自辅助
+  tier3.py       第三层三段梯子 tier3_structural_ladder (A/B/C)
+  negctrl.py     v14 负对照: F2a h/J 扫描 / F1 跨边界 twist / F5 一致性检查束
+  extras.py      v15 / v16 新增: metric_spectral_central_charge (W3b 能谱族) /
+                 _NEG_CTRL_TABLE + metric_negative_control_ledger (W6 台账) /
+                 metric_area_vs_log_law (W3a) / metric_finite_size_scaling (W5) /
+                 **metric_l1_void_link (v16·B1)** / metric_geometry_robustness
+  main.py        编排与作图: collect_metrics_v16 (总入口) / plot_metrics_v16
+                 (20 面板)
+
+【报告口径 (v16 实测: 指标 19/19, 守卫 57/57)】
+  指标 19/19 达标 = 第一层 6/6 (1.1~1.5 + **v16·B1 新增的 1.8**) +
+      第二层 2.1~2.13 (13 项)。第三层 3.1~3.6 **全部是诊断项** (passed=None),
+      不进分母。另有第一层诊断项 1.6 预算漂移 / 1.7 chi 瓶颈归因。
+  守卫 57/57 = **计分守卫** (v15 是 54 条, 新增的 3 条全部来自 B1)。
+      另有 20 条诊断项, 其中 **15 条设计上就该失败** (v15 是 17 条 ——
+      翻成通过的那 2 条是 W11 "L1 有到下游的因果通路" 与 W6 "负对照逐层覆盖",
+      正是 B1 瞄准的两项; 如 V6: 派生 N 之后变体 A 收敛到 x*=0, 权重失去方向)。
       由 record_guard(..., expect_pass=False) 在**注册时**显式标出, 排除出分母。
       不分开计的后果是把**真实的负面结果**算成"没通过", 通过率就成了粉饰。
+  **v15 -> v16 的冻结判据是"按名字"**: v15 的 54 条计分守卫一条不少、判定无一
+      翻转 (`_v16_freeze_check.py`); 只有 `G6 最坏轨迹也达标` 的注册函数名变了。
+      (为什么不能按逐位: exact_ground_state 连调两次 E0 就有 3.553e-15 抖动。)
 
 第一层的两处改动 (都是"诊断驱动", 不是"为达标而调参"):
   1.1/1.2 从单点值 -> 多种子分布, 预算 600 -> 1500 步。
@@ -88,7 +142,7 @@ spiral_metric_v16.py
 两个轴的含义不同, 把它按二维场算描述子只是"用同一套尺子量", 不构成
 "实验斑图与数值斑图形态一致"的证据。所有 B 段数字一律 passed=None。
 
-【v15 新增的两块 (详见各自函数头)】
+【v15 / v16 新增的几块 (详见各自函数头)】
   W3b 能谱族 (`metric_spectral_central_charge`): 低能能谱比值 (E2-E0)/(E1-E0) -> 8
       给出 c, 这是**独立于纠缠谱族**的第二把尺子 (Rényi 族实测偏差 7.97%, 已
       降级为诊断)。实测 c 落在 [0.49894, 0.50034], 最大偏差 0.212%。
@@ -97,8 +151,11 @@ spiral_metric_v16.py
       最差, O(1/L) 有限尺寸修正), 只能说"相容到 0.21%", 不能说"外推到 0.5"。
   W6 负对照台账 (`_NEG_CTRL_TABLE` + `metric_negative_control_ledger`):
       把散在各层的对照按**七个物理阶段**归位 (此前只有 F1/F2a/F5/F6/F7 这套按
-      批次编的号, 读者无法判断哪层被覆盖)。实测 12 条覆盖 **6/7 层**, 缺口
-      `['L1']` (W12 之前是 5/7, 缺口 `['L1','L4']`)。
+      批次编的号, 读者无法判断哪层被覆盖)。v15 实测 12 条覆盖 6/7 层, 缺口
+      `['L1']` (W12 之前是 5/7, 缺口 `['L1','L4']`);
+      **v16·B1 补上 L1 那格 ⇒ 13 条覆盖 7/7 层, 缺口 `[]`**。
+      (补的时候 L1 行的第 2~6 列被改写: `'缺'` -> `'已补'` 等; 其余 12 行
+       **逐元素未动, 列结构未变** —— 表仍是 6/7 元素参差, 故不加第 8 列。)
       配一条**台账完整性守护**: 交叉核对台账引用的守卫名是否真实存在于 GUARDS、
       七层是否各出现一次。这不是物理结论, 是**台账自身的完整性** —— 没有它,
       台账可以写成宣传册 (引用不存在的守卫、或漏掉某层)。
@@ -108,11 +165,20 @@ spiral_metric_v16.py
       在"对照缺失"时反而**通过**。已改为只引用**对照本身**的守卫。
       覆盖层数**故意不计分** (expect_pass=False): "逐层"是审计表提的目标, 不是
       模型的性质; 把它算进通过率等于拿一张待办清单给自己打分, 会把真实缺口
-      (L1 无负对照) 用一个百分比掩掉。
+      用一个百分比掩掉 (W12 之前缺口是 L4; v16·B1 之前是 L1, 现已补上 ——
+      **但守卫本身仍不计分**)。
+
+  v16·B1 新增 (`metric_l1_void_link`, 概览见上方"v16 在指标侧加了什么"):
+      第一层新增的计分指标 (**1.8**) + 三条计分守卫; W6 台账 L1 那格由它补上。
+      **口径限制**: 它量的是**接线通不通**, 不是"L1 的物理结论已被独立验证";
+      推离守卫只标定**灵敏度尺度**。L1 的成熟度因此**维持 B, 不升级**。
 
 【依赖】 numpy / scipy / networkx (无 torch, 本层不训练)
-【被谁 import】 spiral_model_v16.py: collect_metrics_v16 / plot_metrics_v16 /
-              metrics_for_json
+【被谁 import】 spiral_model_v16.py (门面): collect_metrics_v16 /
+              plot_metrics_v16 / metrics_for_json
+              `_model/main.py` / `_v16_claim_ledger.py` / `_v16_smoke_b1_ledger_row.py`
+              也直接 import 本文件 —— 拆分后同一个名字在 `_metric/` 里各有一份
+              绑定, 门面的赋值转发会同步写回 (见文件末尾注释块)。
 """
 
 import os

@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-_v16_cmera_gaussian.py —— v16 · B2 主体: 自由费米子高斯 cMERA（阶段 1：地基与纯 2L×2L 路径）
+_v16_cmera_gaussian.py —— v16 · B2 主体: 自由费米子高斯 cMERA（阶段 1 + 阶段 2）
 
 ================================================================================
-**阶段声明（本文件目前只完成了阶段 1，不要当成完整实现读）**
+**阶段声明（2026-09-25 订正 —— 旧文本写「阶段 2（未做）」，与事实矛盾）**
   阶段 1（本文件）: 升格地基 + **纯 2L×2L 生成元路径** + 两条自检
-  阶段 2（未做）  : 变分优化 `χ(u)`、K1–K6 判据、诊断 B（离散 `L`）
+  阶段 2（**已实现并已跑通**）: 变分优化 `χ(u)`（`optimize_chi`）、K1–K6
+      （`run_K` / `run_K4` / `run_K5` / `run_K6`）、诊断 B（`diagnostic_B`）。
+      实测 `EXIT=0`，`v16/_s2b.log`，总用时 2466.0 s —— 见 `v16_plan.md` §0.1
+      「阶段 2 实测登记」。阶段 2 另有独立自检，走 `stage2check` 分支（`selfcheck2`）。
+  ⚠️ 阶段 2 **不改变下面边界 1–4**，且**不实现** `g_uu`：`g_uu = g(u)²` 由
+      JHEP eq3.4x + K−1 的实测（`0.999999`）在文献侧关闭（见 `v16_plan.md` §3.3.5），
+      故 `hs_metric_g_uu` **不是本文件的缺口** —— 不要再去补它。
 ================================================================================
 
 为什么分成阶段 1: 写之前发现 `v16_plan.md` §3.5 的「先只跑 L=16」**按稠密路径不可行**。
@@ -260,8 +266,14 @@ def pairing_hmat(L, qs, g_of_k, sign=-1.0):
        g_of_k: 可调用, 入参 |q_k|; running cutoff 与 (k e^{−u}/Λ) 前因子在调用方体现。
        ⚠️ 必须由自检 S2 对本文件第 2 节的稠密 `pairing_generator` 核验后才可使用。
 
-       **sign=−1**: K = i g(D − D†) = i Σ g_k (c†c† − cc)   ← eq1.8 的**字面**转录（K−2 已钉）
-       **sign=+1**: K = −g(D + D†) = −Σ g_k (c†c† + cc)      ← 见下方 ⚠️, 这才是 TFI 需要的那个
+       **sign=−1**: 返回 K = i g(D − D†) = i Σ g_k (c†c† − cc) 的 h  ← eq1.8 的**字面**转录（K−2 已钉）
+       **sign=+1**: 返回 H = +g(D + D†) = +Σ g_k (c†c† + cc) 的 h    ← 见下方 ⚠️, 这才是 TFI 需要的那个
+       ⚠️ **`sign` 与 `pairing_generator` 的同名参数含义不同**（2026-09-25 实测钉下; S2a2 首版正是栽在这）:
+          那边翻的是**厄米性**（−1 厄米 / +1 反厄米, S1c 的 h_bad 就钉这个）;
+          这边选的是**哪一族双线性**（两分支**都**返回实反对称 h）。
+          故 sign=+1 的稠密参照必须显式带 **−i**:
+          `pairing_generator(sign=+1) = i·g(D+D†)` 反厄米, 而本分支要的是厄米的 `g(D+D†)`;
+          实测 `|h_gen(+1) − i·h_pure(+1)| = 4.2e-15`, 不带 −i 则偏 √2 = |1−i|。
 
        ⚠️ **为什么需要 sign=+1（2026-09-24 阶段 2 实测逼出, 不是推导偏好）**:
        两式都给出 U|00⟩ 的**占据数** ⟨n_q⟩=sin²φ, 故 K−2 的 C1 **无法区分**它们。
@@ -284,8 +296,11 @@ def pairing_hmat(L, qs, g_of_k, sign=-1.0):
                     _accum_pair(M, 2 * j, 2 * l + 1, +c)
                     _accum_pair(M, 2 * j + 1, 2 * l, +c)
                 else:
-                    # ⚠️ 这两个符号是**稠密对照定的**, 不是推导取定的:
-                    #    首版取 (−c, +c) 实测偏离恰好 2.000 ⇒ 整体差一负号, 翻正后 2.2e-16。
+                    # ⚠️ 这两个符号是**稠密对照定的**, 不是推导取定的（现由 S2a2 逐次核验）:
+                    #    首版取 (−c, +c) 实测偏离恰好 2.000 ⇒ 整体差一负号, 翻正后过。
+                    #    旧注记的「翻正后 2.2e-16」在当前代码下**不可复现**（2026-09-25 实测 √2）:
+                    #    当时多半直接把 `pairing_generator(sign=+1)` 当了稠密参照, 而它比本分支多一个 i
+                    #    （见 docstring ⚠️）。判据成立, 这里只撤掉那个复现不出来的数字。
                     _accum_pair(M, 2 * j, 2 * l, +c)
                     _accum_pair(M, 2 * j + 1, 2 * l + 1, -c)
     return _bilinear_hmat(M)
@@ -528,15 +543,29 @@ def run_K(L=16, J=1.0, h=1.0, n_s=None, u_IR=None, sub=8, Lambda=None, tag=''):
     print(f"    IR 段 d log|χ|/du = {sl:.4f}   (K2 靶 = 2.0, 但见边界 5)")
     print(f"    [rank] rank(C) = {env['rank_C']}/{n_s}   du = {env['du']:.5f}"
           f"   各段中点数 = {' '.join(str(v) for v in env['n_mid'])}")
-    print(f"    [K3] ⟨H⟩ ≥ E0 ? {'是 (变分上界 ✓)' if E >= E0 - 1e-9 else '**否** ⇒ 实现有 bug'}")
-    return chi, E, E0, flat, sl, env
+    # K3 是**两半**（v16_plan.md §3.5）: 相对偏差 < 1e-3 **且** ⟨H⟩ ≥ E0（变分上界）。
+    # ⚠️ 此前这里只判后半 —— 前半在上一行打印后**从不判定**（"打印一个数字"不是判据）;
+    #    而前半的判定只存在于 `selfcheck2` 的 S4b（L=8 单点）, 那个走 `stage2check`
+    #    分支, **不在** `stage2` 主运行里。故已登记的三处 K3 读数实际只有
+    #    「变分上界」一半被判过。这里补齐, 并把结果作为**返回值**供调用方断言。
+    rel_k3 = abs(E - E0) / abs(E0)
+    ub_ok = E >= E0 - 1e-9
+    k3_ok = bool(rel_k3 < 1e-3 and ub_ok)
+    print(f"    [K3] 相对偏差 {rel_k3:.3e} < 1e-3 ? {'是' if rel_k3 < 1e-3 else '**否**'}"
+          f"   且 ⟨H⟩ ≥ E0 ? {'是 (变分上界 ✓)' if ub_ok else '**否** ⇒ 实现有 bug'}"
+          f"   ⇒ K3 {'✓' if k3_ok else '**不通过**'}")
+    return chi, E, E0, flat, sl, env, k3_ok
 
 
 def run_K4(L=16, J=1.0, h=1.0, n_s=None, u_IR=None, sub=10, Lambda=None):
     """K4 负对照: 把 χ 换成**常数**（不随 u 变）, K1/K2 必须变差。
        ⚠️ 必须用**阈值对齐网格**（n_s=None, u_IR=None）。曾默认 `n_s=10, u_IR=-6.0` 的
           等宽网格 —— 那是 10 段 / 8 模式, C 成矩形, φ 坐标不成立, 实测崩在
-          `Cinv @ phi`（见 `optimize_chi` 里的拦查注释）。"""
+          `Cinv @ phi`（见 `optimize_chi` 里的拦查注释）。
+       ⚠️ **判据语义的边界**（v15/v16 audit §三 明写, 此前只存在于散文里）: 本判据问的是
+          「u 方向有没有信息」, 它**只在生成元非尺度不变时才构成负对照** —— 生成元若本身
+          尺度不变, 常数 χ 未必更差, K4 便没有分辨力。本文件走的是**变分原理**（见文件头:
+          极小化末态 ⟨H_til⟩ over 分段常数 χ(u)）, 不是尺度不变生成元。"""
     if Lambda is None:
         Lambda = np.pi
     E0 = jw_ground_energy(L, J, h)
@@ -571,63 +600,108 @@ def run_K4(L=16, J=1.0, h=1.0, n_s=None, u_IR=None, sub=10, Lambda=None):
           f"{'在**区间内部** ✓' if interior else '**触端 ⇒ 未找到内部最优, 本条判据不成立**'}")
     if not interior:
         print(f"    ⚠️ **不许**据此行断言「u 方向有信息」: 常数 χ 的最优尚未找到。")
-    print(f"    -> u 方向{'**有**信息 (变分胜出)' if (interior and E_opt < E_const - 1e-10) else '**本条未建立**'}")
-    return E_opt, E_const
+    k4_ok = bool(interior and E_opt < E_const - 1e-10)
+    print(f"    -> u 方向{'**有**信息 (变分胜出)' if k4_ok else '**本条未建立**'}")
+    return E_opt, E_const, k4_ok
 
 
 def run_K5(L=8, J=1.0, h=1.0, u_probe=-1.0, chi_const=0.6, Lambda=None, sub=10, n_s=10):
     """K5 内部自洽: 该模式的生成元的**方差** ⟨K_k²⟩−⟨K_k⟩² 是否等于 g_k(u)²。
        推导: K_k = −g_k σ_y（K−2 的 C1）, 末态为实态 ⇒ ⟨σ_y⟩=0, σ_y²=I ⇒ 方差 = g_k²。
-       ⚠️ 推导**不当判据** —— 当场在稠密 2^L 上用**实际的 K_k 算符**算方差（L=8, 2^8 可行）。"""
+       ⚠️ 推导**不当判据** —— 当场在稠密 2^L 上用**实际的 K_k 算符**算方差（L=8, 2^8 可行）。
+
+       ⚠️ **2026-09-25 加严（原判据有 2/3 是空判）**: 旧版只在 `u_probe=−1.0` 一个 u 上
+       探 `k∈{0,1,2}` 三个模。但活跃条件是 `0 < k·e^{−u}/Λ < 1`（`cutoff_prefactor`:371）,
+       u=−1 时门槛 `k < Λ/e = 1.156` ⇒ **只有 k=0.3927 活着**; 另两模 `g_k ≡ 0` ⇒
+       `hmat_k = 0` ⇒ `K_k = 0` ⇒ **两边同为 0**, 那两行是 `0 = 0` 的空判, 不携带信息。
+       旧版把三行一起记成 ✓（v16_plan.md §0.1「K5 实测登记」）, 掩盖了「非平凡性只有 1 个模」。
+       ⇒ 现在: ① 扫**多个 u** 使不同 k 轮流进出截断; ② **显式排除空判行**并把非空模数
+       作为判据的一半（`非空模 ≥ 2`）, 使"单模等价"不再能被记成通过。阈值 1e-9 **不动**。"""
     if Lambda is None:
         Lambda = np.pi
-    dim = 2 ** L
     qs = ns_momenta(L)
     Gam = [majorana(a, L) for a in range(2 * L)]
-    c = real_fermions(Gam, L)
-    cq = fourier_modes(c, L, qs)
     edges, u_list, du = make_grid(u_IR=-6.0, u_UV=0.0, n_s=n_s, sub=sub)
     B = bond_matrices(L, qs, u_list, Lambda, True)
     Gam0 = vacuum_covariance(L)
-    # 流到 u_probe（用稠密 psi 同步走一遍, 以得到真实的末态矢量）
+    # 快照点: **按模式的截断门槛选**, 不用等分索引 —— 等分索引会落在"全部模式都被
+    # 截断"的 u 上, 那里的行**全是空判**。实测（等分版首次跑）: 5 个探针里 2 个纯空判,
+    # 20 行里 14 行是 0=0。目标: 对每个 k 取 `u_k = log(k/Λ) + 0.1`（**刚过**该 k 的
+    # 门槛 ⇒ 恰好 k 及以下活跃, 覆盖逐级加密）; 再补 UV 端, 以及"复现已登记读数"的
+    # `u ≤ u_probe` 中最大者 —— 使新旧可比。
+    targets = [float(np.log(float(qs[k]) / Lambda)) + 0.1 for k in range(L // 2)]
+    targets.append(float(u_list[-1]))
+    _cand = [float(u) for u in u_list if u <= u_probe]
+    if _cand:
+        targets.append(_cand[-1])
+    probe_idx = sorted({int(np.argmin([abs(float(u) - t) for u in u_list]))
+                        for t in targets})
+    # 一次走完整个 u_list（不再在 u_probe 处 break）, 在快照点取稠密末态
     psi = uv_vacuum(L)
     G = Gam0
+    rows = []          # (u, k, 方差, g_k², ⟨K⟩)
     for s, u in enumerate(u_list):
-        if u > u_probe:
-            break
         hmat = chi_const * B[s]
         R = expm(-du * hmat)
         G = R.T @ G @ R
-        Kd = reconstruct(hmat, Gam)
-        psi = expm(-1j * Kd * du) @ psi
-    print(f"\n--- K5 方差 vs g_k²  (L={L}, u_probe={u_probe}, χ={chi_const}) ---")
+        psi = expm(-1j * reconstruct(hmat, Gam) * du) @ psi
+        if s not in probe_idx:
+            continue
+        uu = float(u)
+        for k in range(L // 2):
+            kk = float(qs[k])
+            hmat_k = pairing_hmat(
+                L, qs,
+                lambda kx, kk=kk, uu=uu: (cutoff_prefactor(uu, kx, Lambda, True) * chi_const
+                                          if abs(kx - kk) < 1e-12 else 0.0))
+            Kk = reconstruct(hmat_k, Gam)
+            m1 = float(np.real(np.vdot(psi, Kk @ psi)))
+            m2 = float(np.real(np.vdot(psi, Kk @ (Kk @ psi))))
+            gk2 = (cutoff_prefactor(uu, kk, Lambda, True) * chi_const) ** 2
+            rows.append((uu, kk, m2 - m1 ** 2, gk2, m1))
+    nonvac = [r for r in rows if r[3] > 0.0]
+    n_vac = len(rows) - len(nonvac)
+    print(f"\n--- K5 方差 vs g_k²  (L={L}, χ={chi_const} 常数, 扫 {len(probe_idx)} 个 u) ---")
     worst = 0.0
-    for k in range(min(3, L // 2)):
-        u = u_probe
-        def g_of_k(kx, kk=float(qs[k])):
-            return cutoff_prefactor(u, kx, Lambda, True) * chi_const if abs(kx - kk) < 1e-12 else 0.0
-        hmat_k = pairing_hmat(L, qs, g_of_k)
-        Kk = reconstruct(hmat_k, Gam)
-        m1 = float(np.real(np.vdot(psi, Kk @ psi)))
-        m2 = float(np.real(np.vdot(psi, Kk @ (Kk @ psi))))
-        var = m2 - m1 ** 2
-        gk = cutoff_prefactor(u, float(qs[k]), Lambda, True) * chi_const
-        rel = abs(var - gk ** 2) / max(gk ** 2, 1e-30)
+    for (uu, kk, var, gk2, m1) in nonvac:
+        rel = abs(var - gk2) / gk2
         worst = max(worst, rel)
-        print(f"    k={qs[k]:.4f}: ⟨K²⟩−⟨K⟩² = {var:.10e}   g_k² = {gk**2:.10e}"
+        print(f"    u={uu:+.4f} k={kk:.4f}: ⟨K²⟩−⟨K⟩² = {var:.10e}   g_k² = {gk2:.10e}"
               f"   相对差 = {rel:.2e}   (⟨K⟩ = {m1:.2e})")
-    print(f"    -> {'通过 (方差 = g_k², 与 K−1 的单模结论一致)' if worst < 1e-9 else '**不通过**'}")
-    return worst
+    print(f"    [非平凡性] 非空模 {len(nonvac)} 个; **空判 {n_vac} 个已排除**"
+          f"（截断外 g_k≡0 ⇒ K_k=0 ⇒ 两边同为 0, 不携带信息）")
+    ok = bool(worst < 1e-9 and len(nonvac) >= 2)
+    if worst < 1e-9 and len(nonvac) < 2:
+        print(f"    ⚠️ 相对差全过, 但**非空模只有 {len(nonvac)} 个** ⇒ 等价于单模检查, 判据未建立。")
+    print(f"    -> {'通过 (方差 = g_k², 且非空模 ≥ 2)' if ok else '**不通过**'}")
+    return worst, ok
 
 
-def run_K6(L=8, J=1.0, n_s=None, u_IR=None, sub=6, Lambda=None):
-    """K6 与探针 2 对照: 探针 2 的相似度**随 h/J 反向**。
-       本实现改用**保真度** |⟨Ψ_cMERA|Ψ_GS⟩|² 随 h/J 的走向, 稠密精确计算（L=8, 2^8 可行）。
-       ⚠️ 「方向应当如何」是我定的操作化判据（探针 2 只说了它反转了, 没说正确方向) —— 见边界。"""
+def run_K6(L=8, J=1.0, n_s=None, u_IR=None, sub=6, Lambda=None, h_list=None):
+    """K6 与探针 2 对照。
+
+       ⚠️ **2026-09-25 订正 —— K6 的原问题在本口径下不可答（不是"未修好"）**:
+       探针 2 的观测量是**逐层生成元的余弦相似度**（`_v16_smoke_cmera2.py:87-94`
+       `similarity()`: 同奇偶层 `A_k` 与 `A_{k+gap}` 的 cos）。而本口径（A）**没有"层"、
+       没有逐层生成元** —— 只有连续 u 上的 `hmat(u) = χ(u)·B(u)`。
+       ⇒ 「本实现是否修复了探针 2 的**方向反转**」这句在本口径下**无观测量可算**。
+       旧版把观测量**换成保真度**, 又用一句自定的方向判据（旧 docstring 自承
+       "「方向应当如何」是我定的操作化判据"）去判它 —— 那答的是**另一个**问题,
+       且把「临界处内部极小」记成"未修好", 掩盖了它其实是**物理预期**。
+
+       现改为一个**可证伪**的定量陈述（不再自定方向）:
+         **保真度凹陷由质量隙 m = 2|J−h| 支配 ⇒ 极小在 m=0（临界）。**
+       设计: **等 m 的一对** `h/J = 0.4` 与 `1.6`（同 m=1.2）应给出相近保真度;
+       且 `h/J = 1.0`（m=0）低于其余各点。
+       物理预期: 临界点纠缠最大 ⇒ 单个 `χ(u)` 的高斯 ansatz 最难 ⇒ 内部极小是**预期行为**。
+       ⚠️ 「相近」的阈值 0.02 是**我选的**（与旧版同类的诚实标注）, 不是原文给的。
+       ⚠️ `h/J=2.5`（m=3.0）在 m 上无配对模, 保留它只为让曲线完整可读。"""
     if Lambda is None:
         Lambda = np.pi
+    if h_list is None:
+        h_list = (0.2, 0.4, 1.0, 1.6, 2.5)
     results = []
-    for h in (0.2, 1.0, 2.5):
+    for h in h_list:
         E, V = np.linalg.eigh(tfi_matrix(L, J, h, periodic=False))
         gs = V[:, 0] / np.linalg.norm(V[:, 0])
         chi, Eopt, env = optimize_chi(L, J, h, n_s=n_s, u_IR=u_IR, sub=sub, Lambda=Lambda)
@@ -643,12 +717,34 @@ def run_K6(L=8, J=1.0, n_s=None, u_IR=None, sub=6, Lambda=None):
             Kd = reconstruct(float(chi[idx]) * env['B'][s], Gam)
             psi = expm(-1j * Kd * env['du']) @ psi
         fid = float(abs(np.vdot(gs, psi)) ** 2)
-        results.append((h, fid, Eopt))
-        print(f"    h/J={h:4.2f}: 保真度 |⟨Ψ_cMERA|Ψ_GS⟩|² = {fid:.6f}   ⟨H⟩ = {Eopt:.9f}")
-    hs = [r[0] for r in results]
-    fs = [r[1] for r in results]
-    print(f"    -> 保真度随 h/J 的走向: {'上升至临界后回落 (与探针 2 的反向**不同**)' if max(fs) > fs[0] and max(fs) > fs[-1] else '单调'} (max at h/J={hs[int(np.argmax(fs))]})")
-    return results
+        m_gap = 2.0 * abs(J - h)
+        results.append((h, m_gap, fid, Eopt))
+        print(f"    h/J={h:4.2f}  m=2|J−h|={m_gap:.2f}: 保真度 |⟨Ψ_cMERA|Ψ_GS⟩|² = {fid:.6f}"
+              f"   ⟨H⟩ = {Eopt:.9f}")
+    by_h = {r[0]: r[2] for r in results}
+    # [K6-a] 等 m 配对: h/J = 0.4 与 1.6 同 m = 1.2
+    if 0.4 in by_h and 1.6 in by_h:
+        d_pair = abs(by_h[0.4] - by_h[1.6])
+        sym_ok = d_pair < 0.02
+        print(f"    [K6-a 等 m 配对] fid(0.4)={by_h[0.4]:.6f} vs fid(1.6)={by_h[1.6]:.6f}"
+              f"  |差|={d_pair:.4f} < 0.02 ? {'是 ✓' if sym_ok else '**否**'}")
+    else:
+        sym_ok = False
+        print("    [K6-a 等 m 配对] **未判**: h_list 缺 0.4 或 1.6")
+    # [K6-b] 极小在 m = 0
+    others = [v for k, v in by_h.items() if k != 1.0]
+    if 1.0 in by_h and others:
+        mn = min(others)
+        dip_ok = by_h[1.0] < mn
+        print(f"    [K6-b 极小在 m=0] fid(1.0)={by_h[1.0]:.6f} < min(其余 {len(others)} 点)"
+              f"={mn:.6f} ? {'是 ✓' if dip_ok else '**否**'}")
+    else:
+        dip_ok = False
+        print("    [K6-b 极小在 m=0] **未判**: h_list 缺 1.0 或其余各点")
+    ok = bool(sym_ok and dip_ok)
+    print(f"    -> K6 {'通过 (凹陷由质量隙 m 支配)' if ok else '**不通过**'}")
+    print("       ※ K6 的原问题（探针 2 的层间相似度反转）在本口径下**不可答** —— 见 docstring")
+    return results, ok
 
 
 def diagnostic_B(L=8):
@@ -789,7 +885,9 @@ def selfcheck(L=8, J=1.0, h=1.0):
     print("  2. d_k ≡ c†_{-q_k} 是逻辑推断(原文 d 是狄拉克反粒子), 非原文陈述。")
     print("  3. K1/K2 的靶 g(u) 来自 2104.01551(**玻色子**)。费米子版闭式原文没有")
     print("     (JHEP §3 整节无费米子内容, eq3.5i 是玻色子的) ⇒ 用玻色子靶检验费米子实现是**继承的假设**。")
-    print("  4. 阶段 1 不产出任何 TFI 物理结论。g_uu / 熵 / 变分优化 均**尚未实现**。")
+    print("  4. 阶段 1 不产出任何 TFI 物理结论。**本自检不含** `g_uu` / 熵 / 变分优化;")
+    print("     变分优化与 K1–K6 已在阶段 2 实现（见文件头）, 走 `stage2` 分支。")
+    print("     注: `g_uu = g(u)²` 由 eq3.4x + K−1 在文献侧关闭, 本文件不需实现它。")
     print(f"\n用时 {time.time() - t0:.1f} s")
     return 0 if ok else 3
 
@@ -808,14 +906,21 @@ def selfcheck2(L=8, J=1.0, h=1.0, sub=8):
     cq = fourier_modes(c, L, qs)
     chk = {}
     print(f"=== v16 · 高斯 cMERA 阶段 2 自检  [{_VERSION_TAG}] ===")
+    # 口径必须出现在每一处输出的第一行(audit §三 硬边界)。此处原先漏了 ——
+    # 8 个动词里唯一不打印它的一条(:789 走 selfcheck, 其余 6 个走 _stage2_preamble)。
+    print("口径 A: H_til = H_open + J·iγ_{2L-1}γ_0 (偶宇称扇区)")
 
     # S2a2: sign=+1 分支（阶段 2 实际使用的那个）也要对稠密路径核验
+    # ⚠️ 必须显式带 **−i**: `pairing_generator(sign=+1) = i·g(D+D†)` 是**反厄米**的
+    #    （S1c 的 h_bad 钉的正是它）, 而 `pairing_hmat(sign=+1)` 返回的是**厄米**的
+    #    `H = g(D+D†)` 的 h。同名参数 `sign` 在两函数里含义不同（前者翻厄米性, 后者选双线性族）——
+    #    首版按「同名即同义」写, 实测偏离 1.414 = |1−i|（2026-09-25）。
     g_const = 0.37
-    _, hmat_p = fermion_test(pairing_generator(cq, L, lambda kk: g_const, sign=+1.0), Gam, dim)
+    _, hmat_p = fermion_test(-1j * pairing_generator(cq, L, lambda kk: g_const, sign=+1.0), Gam, dim)
     hmat_pure_p = pairing_hmat(L, qs, lambda kk: g_const, sign=+1.0)
     dev_p = float(np.abs(hmat_pure_p - hmat_p).max()) / max(float(np.abs(hmat_p).max()), 1e-30)
     chk['S2a2 sign=+1 ≡ 稠密'] = dev_p < 1e-10
-    print(f"    [S2a2] |hmat_pure(+1) − hmat_dense(+1)| / |·| = {dev_p:.3e}"
+    print(f"    [S2a2] |hmat_pure(+1) − hmat_dense(−i·K_gen)| / |·| = {dev_p:.3e}"
           f"   -> {'通过' if chk['S2a2 sign=+1 ≡ 稠密'] else '不通过'}")
 
     # S3: vacuum_covariance 的解析式对稠密 covariance(uv_vacuum) 核验（docstring 声称的 S3）
@@ -856,6 +961,51 @@ def selfcheck2(L=8, J=1.0, h=1.0, sub=8):
     return 0 if ok else 3
 
 
+# ---------------------------------------------------------------------------
+# CLI 动词表 —— **白名单**。
+#
+# 为什么要有这张表: 原分派是 `if stage == 'stage1' / if stage == 'stage2check' /
+# 落空`。落空分支既没有 `else` 也没有报错, 所以 `python _v16_cmera_gaussian.py
+# stage2czech`（拼错）会**静默落进 stage2**, 白跑 ~40 分钟, 最后还硬编码
+# `sys.exit(0)`。2026-09-25 复核确认。现在未知动词**立刻**报错退 2。
+# ---------------------------------------------------------------------------
+_VERBS = ('stage1', 'stage2check', 'stage2',
+          'run_K', 'run_K4', 'run_K5', 'run_K6', 'diagnostic_B')
+
+# stage2 的 K1/K2 组: 顺序即打印顺序, 逐字沿用原 4 行调用。
+RUN_K_SET = (
+    dict(L=8, J=1.0, h=1.0, tag='冒烟 L=8 临界'),
+    dict(L=16, J=1.0, h=1.0, tag='K1 临界 h=J'),
+    dict(L=16, J=1.0, h=0.5, tag='K2 有质量 h/J=0.5'),
+    dict(L=32, J=1.0, h=1.0, tag='K1 复验 L=32（纯 2L×2L, 红线内）'),
+)
+
+
+def _stage2_preamble():
+    """stage2 与其逐函数动词共用的表头 —— 抽出来只为保证两种入口打印逐字相同。"""
+    print(f"=== v16 · 高斯 cMERA 阶段 2  [{_VERSION_TAG}] ===")
+    print("口径 A: H_til = H_open + J·iγ_{2L-1}γ_0 (偶宇称扇区)")
+    print("变分原理（**选择, 非原文操作化定义**）: 极小化末态 ⟨H_til⟩ over 分段常数 χ(u)")
+    print("K1/K2 的靶是**裸量 χ**（与原文行 104 玻色子 `g_k^B=Γ·g^B` 无前因子对应）; 口径选择, 见文件头")
+
+
+def _report_verdicts(verdicts, t0):
+    """把 stage2 的判定聚合成退出码。
+
+    **这是一条此前不存在的东西。** `run_K` 的 `k3_ok`、`run_K4/5/6` 的判定
+    原先全部在 stage2 内被丢弃（返回值未绑定）, 退出码硬编码 `sys.exit(0)` ——
+    于是「阶段 2 全流程绿了」这件事**没有任何断言在支撑**。现在逐条打印。
+    """
+    print(f"\n--- 阶段 2 判定聚合 ---")
+    for k, v in verdicts.items():
+        print(f"    {k:<28}: {'通过' if v else '**不通过**'}")
+    n_ok = sum(1 for v in verdicts.values() if v)
+    ok_all = bool(n_ok == len(verdicts))
+    print(f"\n    阶段 2 判定: {'通过' if ok_all else '未通过'}   ({n_ok}/{len(verdicts)})")
+    print(f"\n总用时 {time.time() - t0:.1f} s")
+    return 0 if ok_all else 3
+
+
 if __name__ == '__main__':
     # Windows 控制台默认可能是 GBK, 而本文件的输出含 û / γ / ⟩ / 中文。
     # 不设这一行会随机 UnicodeEncodeError（2026-09-24 实测到一次, `û` 触发）。
@@ -864,21 +1014,67 @@ if __name__ == '__main__':
     except (AttributeError, OSError):
         pass
     stage = sys.argv[1] if len(sys.argv) > 1 else 'stage1'
+    if stage not in _VERBS:
+        print(f"!! 未知子命令 {stage!r} —— 拒绝执行。")
+        print(f"   允许的动词: {', '.join(_VERBS)}")
+        print(f"   用法: python 本文件 [{' | '.join(_VERBS)}]")
+        sys.exit(2)
     t0 = time.time()
+
     if stage == 'stage1':
         sys.exit(selfcheck())
-    if stage == 'stage2check':
+    elif stage == 'stage2check':
         sys.exit(selfcheck2())
-    print(f"=== v16 · 高斯 cMERA 阶段 2  [{_VERSION_TAG}] ===")
-    print("口径 A: H_til = H_open + J·iγ_{2L-1}γ_0 (偶宇称扇区)")
-    print("变分原理（**选择, 非原文操作化定义**）: 极小化末态 ⟨H_til⟩ over 分段常数 χ(u)")
-    print("K1/K2 的靶是**裸量 χ**（与原文行 104 玻色子 `g_k^B=Γ·g^B` 无前因子对应）; 口径选择, 见文件头")
-    run_K(L=8, J=1.0, h=1.0, tag='冒烟 L=8 临界')
-    run_K(L=16, J=1.0, h=1.0, tag='K1 临界 h=J')
-    run_K(L=16, J=1.0, h=0.5, tag='K2 有质量 h/J=0.5')
-    run_K(L=32, J=1.0, h=1.0, tag='K1 复验 L=32（纯 2L×2L, 红线内）')
-    run_K5(L=8)
-    diagnostic_B(L=8)
+    elif stage == 'run_K':
+        # K1/K2 组单跑: 与 stage2 里那 4 次调用**同一组参数、同一顺序**,
+        # 故读数与 stage2 日志里的对应行逐位相同。
+        _stage2_preamble()
+        oks = []
+        for kw in RUN_K_SET:
+            *_, k3_ok = run_K(**kw)
+            oks.append(k3_ok)
+        print(f"\n--- run_K 组判定 ---")
+        for kw, ok in zip(RUN_K_SET, oks):
+            print(f"    {kw['tag']:<28}: {'通过' if ok else '**不通过**'}")
+        n_ok = sum(1 for v in oks if v)
+        print(f"\n    run_K 组: {'通过' if n_ok == len(oks) else '未通过'}   ({n_ok}/{len(oks)})")
+        print(f"\n总用时 {time.time() - t0:.1f} s")
+        sys.exit(0 if n_ok == len(oks) else 3)
+    elif stage == 'run_K4':
+        _stage2_preamble()
+        _, _, k4_ok = run_K4(L=16, J=1.0, h=1.0)
+        print(f"\n    判定: {'通过' if k4_ok else '**不通过**'}")
+        print(f"\n总用时 {time.time() - t0:.1f} s")
+        sys.exit(0 if k4_ok else 3)
+    elif stage == 'run_K5':
+        _stage2_preamble()
+        _, ok5 = run_K5(L=8)
+        print(f"\n    判定: {'通过' if ok5 else '**不通过**'}")
+        print(f"\n总用时 {time.time() - t0:.1f} s")
+        sys.exit(0 if ok5 else 3)
+    elif stage == 'run_K6':
+        _stage2_preamble()
+        _, ok6 = run_K6(L=8, J=1.0)
+        print(f"\n    判定: {'通过' if ok6 else '**不通过**'}")
+        print(f"\n总用时 {time.time() - t0:.1f} s")
+        sys.exit(0 if ok6 else 3)
+    elif stage == 'diagnostic_B':
+        # **非门禁**: 其 docstring 明写「结果正负都登记, 不阻断主线」, 故恒退 0。
+        _stage2_preamble()
+        diagnostic_B(L=8)
+        print(f"\n    （diagnostic_B 非门禁 —— 结果正负都登记, 不进判定聚合）")
+        print(f"\n总用时 {time.time() - t0:.1f} s")
+        sys.exit(0)
+
+    # ---- stage2: 全流程 ----
+    _stage2_preamble()
+    verdicts = {}
+    for kw in RUN_K_SET:
+        *_, k3_ok = run_K(**kw)
+        verdicts[f"K3 {kw['tag']}"] = k3_ok
+    _, ok5 = run_K5(L=8)
+    verdicts['K5 方差 = g_k² (非空模≥2)'] = ok5
+    diagnostic_B(L=8)   # 非门禁: 见 diagnostic_B docstring「结果正负都登记, 不阻断主线」
     # 边界 5 的**证据**: χ 的形状随格点变, φ* 与 ⟨H⟩ 不变 ⇒ χ 不是良定义的物理量
     print("\n--- 边界 5 证据: 加密求积格点, χ 变而 φ*/E 不变 ---")
     # ⚠️ sub 必须大到让 n_steps 真的不同。`optimize_chi` 现在会把 n_steps **下钳到
@@ -891,8 +1087,9 @@ if __name__ == '__main__':
               f"{' '.join(f'{v:+.5f}' for v in chi_2[:3])}  末段 χ = {chi_2[-1]:+.3f}"
               f"  rank(C)={env_2['rank_C']}  n_steps={len(env_2['u_list'])}")
     # K4 负对照（此前只实现未跑）
-    run_K4(L=16, J=1.0, h=1.0)
+    _, _, k4_ok = run_K4(L=16, J=1.0, h=1.0)
+    verdicts['K4 u 方向有信息 (变分胜出)'] = k4_ok
     # K6: 稠密重建末态、对基态算保真度（h 由 run_K6 内部扫, 不传参）
-    run_K6(L=8, J=1.0)
-    print(f"\n总用时 {time.time() - t0:.1f} s")
-    sys.exit(0)
+    _, ok6 = run_K6(L=8, J=1.0)
+    verdicts['K6 凹陷由质量隙 m 支配'] = ok6
+    sys.exit(_report_verdicts(verdicts, t0))
