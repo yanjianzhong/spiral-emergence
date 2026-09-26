@@ -82,7 +82,11 @@ def metric_central_charge_error_seeds(runs, chi, L, baseline=0.1145):
               f'本层实测 {len(runs)} 条轨迹全距 [{lo:.2%}, {hi:.2%}] —— '
               f'那个基线落在本分布的右尾, 说明它是**未收敛**而不是**表示极限**。'
               f'判据用 max 而非 median: 只要有一条轨迹做不到, "chi={chi} 能做到"'
-              f'就不成立。目标 5% 未放宽。'))
+              f'就不成立。目标 5% 未放宽。'),
+        # 供 `G6 最坏轨迹也达标` 指认 (v16.1·C-1)。两者读**同一份 runs、同一个
+        # EPS_T** ⇒ 登记为**同源**, 不构成独立佐证。逐条登记见
+        # `v16/spiral_v16_audit.md` §6.4。
+        claim_id='1.1')
     return {'median': med, 'min': lo, 'max': hi, 'passed': ok}
 
 

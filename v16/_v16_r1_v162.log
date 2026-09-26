@@ -1,0 +1,14 @@
+=== v16 runner  [1 条, --only full_pipeline+claim_ledger] ===
+日志: D:\dev\product\python\spiral-emergence\v16\_runall.log
+     上一份已归档 -> _runall_20260926-135630.log
+  [full] full_pipeline+claim_ledger 
+
+>>> full_pipeline+claim_ledger ...
+<<< full_pipeline+claim_ledger: 符合登记预期  (1358.6 s)
+
+==============================================================================
+  该通过的: 1/1  (100.0%)
+    ✓ full_pipeline+claim_ledger  1358.6s  符合登记预期
+  预期失败(单列): 0 条, 未如预期 0 条
+
+总用时 1358.9 s   日志: D:\dev\product\python\spiral-emergence\v16\_runall.log

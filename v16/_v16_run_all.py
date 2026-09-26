@@ -48,10 +48,51 @@ v15 的 `record_guard(..., expect_pass=False)` 就是为这件事立的。
   - 子进程 stdout 是管道 ⇒ 子进程侧默认**块缓冲**。本 runner 用 `-u` 让子进程
     无缓冲, 所以能实时流式看到；但**不保证**逐行及时（取决于子进程自己的缓冲行为）。
   - 本 runner **不改任何脚本的行为**, 也不碰 cache（`_v13/_v14/_v15_cache` 只读）。
+
+【日志归档（2026-09-26 新增）】
+
+`open(LOG, 'w')` 是**截断写** —— 上一次的记录会被静默覆盖。仓库此前靠**手工**改名保历史
+（`_runall_fast_2026-09-25.log` / `_runall_full_2026-09-25.log` /
+`_runall_only_before_22_2026-09-25.log` 三个都是这么来的）。现在这一步由 runner 接管:
+开新日志前, 先把已存在的 `_runall.log` 改名为 `_runall_<YYYYmmdd-HHMMSS>.log`。
+
+  - 归档失败（磁盘满 / 权限）**退码 2, 不静默继续** —— 静默继续就等于又覆盖了一次。
+  - **只归档, 不清理**。清理分支失败的方式是**删证据**; 目录膨胀是可以事后处理的小事。
+    两者不对称, 所以不设保留份数上限。
+  - `--list` 与参数错误**不触发归档**（所有提前 return 都排在归档之前）。
+  - 归档文件的 **mtime 是它被写下的时刻**, 不是归档时刻 —— `os.replace` 保留原 mtime。
+    实测: `_runall_20260926-082034.log` 的 mtime 显示 `19:00:55`（前一天）, 而名字里是
+    `082034`。**名字记归档时刻, mtime 记内容时刻, 两者本就不同, 不是缺陷。**
+
+【运行环境快照（2026-09-26 新增）—— 只登记, 不复测、不解释】
+
+为什么: v16 留下三条「读数一致、用时对不上」的差额（`997.3 vs 1292.0` /
+`694.1 vs 91.8` / `1879 vs 1318.2`）。差额本身按纪律**只登记不复测**; 本条要做的是让
+**下一次跑的时候环境证据自己就在日志里**, 否则差额永远无法归因。
+
+  - 日志开头一块环境头（时间戳 / `platform` / 逻辑核数 / Python 版本）;
+  - **每一条登记项**的 `EXIT=` 行尾附该条的**全机 CPU 忙占比** —— 三条差额都是**逐条**的,
+    整场一个数归因不到具体条目。
+  - 口径: 忙占比 = `(Δ(内核+用户) − Δ空闲) / Δ(内核+用户)`, 源为 `kernel32!GetSystemTimes`
+    的**整机**累计计数。⚠️ Windows 的 `kernel` 累计**已含** idle, 写错会把忙占比算成接近 100%。
+  - 它记的是「**这台机器当时在忙什么**」（含其它进程）, **不是子进程自身占用**。
+  - **不因负载高低改判任何东西**: 不重跑、不标「干净」、不解释历史差额。
+  - 非 Windows 平台 `windll` 不存在 ⇒ 一律写「不适用」, **不假装有数**。
+
+  **实测标定（2026-09-26, 本机 8 逻辑核 / Python 3.13.9）**: 8 核满载 3 s 窗口读
+  `100.0%`, 卸载后空转 3 s 读 `18.4%` ⇒ 公式与「`kernel` 已含 idle」的口径**正确**
+  （若重复计数, 满载也只能读到约 50%）。
+  ⚠️ **分辨率边界（实测, 不是推断）**: 本机**背景负载本身就在 18~26% 之间波动**,
+  **单核**满载（≈ +12.5pp）的贡献被淹没 —— 实测「空转 2 s = 25.7%」与
+  「单核烧 2 s = 22.4%」**无法区分**（后者甚至更低）。所以本字段只够判
+  「**这台机器当时是否被打满**」, **不足以归因 20~30% 级别的用时差**。
+  非 Windows 分支（`windll` 不存在 ⇒ 「不适用」）**代码已写但未实测**（本机是 Windows）。
 """
 
 import argparse
+import ctypes
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -98,10 +139,14 @@ ENTRIES = [
     _e('cmera2', ['_v16_smoke_cmera2.py'], expect_pass=False, expect_exit=3,
        timeout_s=1800,
        note='**探针 2 尺度不变性 —— 在 v16 口径 A 下不适用, 故 EXIT=3 是设计如此**'
-            '（v16_plan.md:1005 要求独立条目）。**根因已钉死, 不是"未修好"**: 口径 A 没有'
-            '「层」/逐层生成元 ⇒ 探针 2 的观测量**不存在**; 且离散 L 是**厄米**的, 而 cMERA '
-            '的标度算符必须是**反厄米**生成元 ⇒ 离散格上不存在同时满足两者的 k∂_k'
-            '（厄米性判据逐行打印在 diagnostic_B 的输出里）。'
+            '（v16_plan.md:1005 要求独立条目）。**根因是「观测量不存在」, 不是"未修好"**: '
+            '口径 A 没有「层」/逐层生成元 ⇒ 探针 2 要算的余弦相似度**无对象**。'
+            '⚠️ **2026-09-26 撤回一处旧表述**（旧文写「离散 L 厄米, 而 cMERA 的标度算符'
+            '必须反厄米 ⇒ 离散格上不存在 k∂_k」）: 原文 `cMERA_Entropy_rev.tex:75`/`:87` '
+            '把 L 放在 `e^{-i∫(K+L)du}` / `e^{-iûL}` 里 ⇒ 酉性要求 L **厄米** ⇒ 实测的厄米性'
+            '（diagnostic_B：‖L−L†‖=2.482534e-16）**正是应有性质, 不是矛盾**。'
+            '那次检验**平凡**的真原因是**态**：测的是 `uv_vacuum`, 被所有 c_q 湮灭 ⇒ '
+            '任何**对角数算符**都给 0。有内容版见 `_v16_smoke_cmera_d.py`。'
             '预期失败, 不进分母。⚠️ 「单列」不等于「不检查」: 若它某天变成 EXIT=0, '
             '那是**已知负结果翻正**, runner 会红 —— 那是该被看见的事, 不是误报。'),
     _e('cmera3', ['_v16_smoke_cmera3.py'], timeout_s=900,
@@ -211,7 +256,7 @@ ENTRIES = [
     # ⚠️ 本段两条是 2026-09-25 新增的;**注册条目数 18 -> 20 -> 22** —— 与同日"高斯主体"段
     #    新增的 `gaussian.run_K4` 合起来, 本轮共 +2（`run_K4` 与 `derive_presets`）。审计里
     #    登记过的 runner 条目计数需要同步改。这些条目**不加守卫也不加指标**(那会动分母
-    #    27/77), 只把原先只在 markdown 里的判断变成可执行、可复跑的检查。
+    #    27/78), 只把原先只在 markdown 里的判断变成可执行、可复跑的检查。
     _e('presets', ['_v16_smoke_presets.py'], timeout_s=600,
        must_contain=('=== 结果: 全部通过 ===',),
        note='预设层审计 (§5.4 的三条"给定"预设)。把「给定」细分成「承重 / 不承重」: '
@@ -239,7 +284,7 @@ ENTRIES = [
             '强制(γ_aγ_b 实测反厄米, 全部 56 对) —— 但其前提(**费米子表述**)本身是选择 ⇒ '
             '**与 (A) 同一个根**。'
             '⇒ 三条"给定"收敛为**一个**选择 + 它的两个推论 + 一条最小性; 缺口比 §5.5 记的'
-            '小, **但不是零** —— 本条目**不宣称缺口已修复**。**不加守卫/指标**(不动 27/77)。'),
+            '小, **但不是零** —— 本条目**不宣称缺口已修复**。**不加守卫/指标**(不动 27/78)。'),
 
     # ---- 主张台账 ----
     _e('claim_ledger.standalone', ['_v16_claim_ledger.py'], expect_pass=False, expect_exit=3,
@@ -304,6 +349,62 @@ def _verdict(e, rc, out, timed_out):
     return True, '符合登记预期'
 
 
+class _FILETIME(ctypes.Structure):
+    """`GetSystemTimes` 的出参: 64 位计数拆成高/低两个 32 位。"""
+    _fields_ = [('dwLowDateTime', ctypes.c_uint32),
+                ('dwHighDateTime', ctypes.c_uint32)]
+
+
+def _cpu_times():
+    """读全机累计 `(idle, kernel, user)` 计数（100 ns 单位）; 取不到则 `None`。"""
+    if not hasattr(ctypes, 'windll'):
+        return None
+    idle, kern, user = _FILETIME(), _FILETIME(), _FILETIME()
+    try:
+        ok = ctypes.windll.kernel32.GetSystemTimes(
+            ctypes.byref(idle), ctypes.byref(kern), ctypes.byref(user))
+    except OSError:
+        return None
+    if not ok:
+        return None
+
+    def _q(ft):
+        return (ft.dwHighDateTime << 32) | ft.dwLowDateTime
+    return _q(idle), _q(kern), _q(user)
+
+
+def _cpu_busy_text(t0, t1):
+    """两次采样之间的全机 CPU 忙占比, 形如 `  [全机 CPU 忙 12.3%, 8 核]`。
+
+    ⚠️ `kernel` 累计**已含** idle（Windows 口径）, 故 `total = kernel + user`,
+    `忙 = total − idle`。写成 `total = idle + kernel + user` 会把忙占比算成接近 100%。
+    """
+    if t0 is None or t1 is None:
+        return '  [全机 CPU 忙: 不适用]'
+    d_idle = t1[0] - t0[0]
+    d_total = (t1[1] + t1[2]) - (t0[1] + t0[2])
+    if d_total <= 0:
+        return '  [全机 CPU 忙: 不适用]'
+    return (f"  [全机 CPU 忙 {100.0 * (d_total - d_idle) / d_total:.1f}%, "
+            f"{os.cpu_count()} 核]")
+
+
+def _env_header():
+    """本次运行的环境头, 写在日志开头。**只登记**, 不参与任何判定。"""
+    now = time.time()
+    return '\n'.join([
+        '',
+        '--- 运行环境（只登记, 不参与任何判定）---',
+        f"    本机时间 {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(now))}"
+        f"   (UTC {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(now))})",
+        f"    platform {platform.platform()}",
+        f"    CPU 逻辑核 {os.cpu_count()}   Python {sys.version.split()[0]}",
+        '    全机 CPU 忙占比 = (Δ(内核+用户) − Δ空闲) / Δ(内核+用户), 源为',
+        '      kernel32!GetSystemTimes 的**整机**累计计数 —— 含**其它进程**的活动,',
+        '      记的是「这台机器当时在忙什么」, 不是子进程自身占用。逐条见其 EXIT 行。',
+    ]) + '\n'
+
+
 def _run(e, logf):
     logf.write('\n' + '=' * 78 + '\n')
     logf.write(f"[{e['name']}]  {' '.join(e['argv'])}\n")
@@ -314,6 +415,7 @@ def _run(e, logf):
 
     argv = [sys.executable, '-u'] + e['argv']
     t0 = time.time()
+    cpu0 = _cpu_times()      # 与环境头同一口径: 整机累计计数, 采样窗口 = 本条进程的存活期
     chunks = []
     try:
         proc = subprocess.Popen(argv, cwd=HERE, stdout=subprocess.PIPE,
@@ -344,9 +446,35 @@ def _run(e, logf):
     out = '\n'.join(chunks)
     ok, why = _verdict(e, rc, out, timed_out)
     # 这一行此前由 shell 外部追加, 格式不稳定 —— 现在由 runner 接管。
-    logf.write(f"EXIT={rc}  用时 {dt:.1f} s  ->  {why}\n")
+    # 尾部附该条的**全机** CPU 忙占比（只登记, 不改判; 见文件头【运行环境快照】）。
+    logf.write(f"EXIT={rc}  用时 {dt:.1f} s  ->  {why}"
+               f"{_cpu_busy_text(cpu0, _cpu_times())}\n")
     logf.flush()
     return ok, why, dt
+
+
+def _archive_prev_log():
+    """把已存在的 `LOG` 改名为带时间戳的归档, 返回归档路径; 无旧日志则返回 `None`。
+
+    为什么需要: `open(LOG, 'w')` 是**截断写**, 上一次的记录会被静默覆盖。仓库此前靠
+    **手工**改名保历史, 这一步把它交给 runner, 使「曾经绿过」与「现在仍绿」之间的桥
+    不再依赖人记得改名。详见文件头【日志归档】。
+
+    边界: **只归档, 不清理**。调用方负责把 `OSError` 转成退码 2 —— 归档失败必须让本次
+    运行**停下来**, 否则又是一次静默覆盖。
+    """
+    if not os.path.exists(LOG):
+        return None
+    ts = time.strftime('%Y%m%d-%H%M%S')
+    dst = os.path.join(HERE, f"_runall_{ts}.log")
+    n = 1
+    while os.path.exists(dst):
+        # 同一秒内连跑两次时不覆盖既有归档 —— 本函数存在的理由就是「别丢证据」,
+        # 它自己不能成为丢证据的那一环。
+        dst = os.path.join(HERE, f"_runall_{ts}_{n}.log")
+        n += 1
+    os.replace(LOG, dst)
+    return dst
 
 
 def main():
@@ -384,10 +512,19 @@ def main():
             return 2
         entries = [e for e in all_entries if e['name'] in want]
 
+    # 归档排在两个提前 return（`--list` / 未登记的 `--only`）之后: 它们不该动日志。
+    try:
+        prev_log = _archive_prev_log()
+    except OSError as exc:
+        print(f"!! 归档旧日志失败, 拒绝覆盖 {LOG}: {exc}")
+        return 2
+
     sel = (f"--only {args.only}" if args.only
            else ('--full' if args.full else 'fast 层'))
     print(f"=== v16 runner  [{len(entries)} 条, {sel}] ===")
     print(f"日志: {LOG}")
+    if prev_log:
+        print(f"     上一份已归档 -> {os.path.basename(prev_log)}")
     for e in entries:
         print(f"  [{e['tier']}] {e['name']:<26} {'预期失败' if not e['expect_pass'] else ''}")
 
@@ -396,6 +533,9 @@ def main():
     with open(LOG, 'w', encoding='utf-8') as logf:
         logf.write(f"=== v16 runner  {time.strftime('%Y-%m-%d %H:%M:%S')}  "
                    f"{'--full' if args.full else 'fast'}, {len(entries)} 条 ===\n")
+        if prev_log:
+            logf.write(f"    (上一份日志已归档: {os.path.basename(prev_log)})\n")
+        logf.write(_env_header())
         for e in entries:
             print(f"\n>>> {e['name']} ...", flush=True)
             ok, why, dt = _run(e, logf)

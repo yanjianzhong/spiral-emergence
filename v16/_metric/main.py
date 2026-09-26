@@ -55,7 +55,7 @@ from _metric.registry import (
     EPS_T, guard_pass_rate, print_health_report, record_guard,
 )
 from _metric.solvers import (
-    boundary_correlation_graph, exact_ground_state, fit_central_charge, metric_chain_rmse, metric_correlation_exponent, metric_entropy_kl, metric_gap_closure, metric_jordan_peak, metric_mera_consistency,
+    boundary_correlation_graph, exact_ground_state, fit_central_charge, metric_chain_rmse, metric_correlation_exponent, metric_entropy_kl, metric_gap_closure, metric_jordan_peak, metric_mera_consistency, mmi_tripartite,
 )
 from _metric.tier3 import tier3_structural_ladder
 from _metric.tier3_desc import _log_bin
@@ -171,13 +171,36 @@ def collect_metrics_v16(ctx, KNOBS, _HERE, v13):
                  f"{len(runs)} 条轨迹 max eps_c = "
                  f"{max(r['eps_c'] for r in runs):.3%} < {EPS_T:.0%}",
                  max(r['eps_c'] for r in runs) < EPS_T,
-                 note='若这条为假, 1.1 的"达标"只是在某个种子上运气好。')
+                 note='若这条为假, 1.1 的"达标"只是在某个种子上运气好。',
+                 # 指认 1.1 (v16.1·C-1)。判据 `max(r['eps_c']) < EPS_T` 与 1.1 的
+                 # `ok = bool(hi < EPS_T)` 是**同一条不等式**、同一份 runs ⇒
+                 # **同源**: 这是接线, 不是独立佐证。登记见 audit §6.4。
+                 tests_claims=('1.1',))
     record_guard('G7 最优检查点非首步',
                  'mera_fit_v13(overlap 选择)',
                  f"全部轨迹的选定 step > 0",
                  all(r['chosen_step'] > 0 for r in runs),
                  note='最佳检查点选择必须真的移动过; 若全停在 step 0, '
                       '说明选择逻辑坏掉, 报出的会是初态的随机值。')
+
+    # v16.2·L4 新增: 互信息的单调性 (MMI) —— 「存在几何对偶」的**必要**条件。
+    # 与 G2 (`S(L/2) > 0`, 恒真) 的区别: 本条**真能失败** (GHZ 即反例), 故它是判据
+    # 而不是恒真式; 也不能用强次可加性 SSA 代替 —— SSA 是定理, 物理上不可能失败。
+    # expect_pass=False 的依据是 v16.2·S2 冒烟的**实测符号**, 不是预设:
+    #   L=16 上 I3 > 0 全部 w (趋势 `+0.0357`, 远离 0) ⇒ 负结果 ⇒ 照登, 不计入通过率。
+    _mmi = mmi_tripartite(gs_exact, L_chain)
+    record_guard('G8 L4 几何对偶必要条件 (MMI)', 'collect_metrics_v16',
+                 f"I3(w) = {[round(float(v), 6) for v in _mmi['i3']]} "
+                 f"(w=1..4) 全部 <= 0",
+                 bool(_mmi['all_le_zero']), expect_pass=False,
+                 note='**按 L=16 的实测登记为负, 不是待办**: I3 > 0 全部 w, 趋势 '
+                      f"{_mmi['trend']:+.4f} (远离 0)。成因是**尺度** —— "
+                      'xi ~ 19.3 > L = 16 (`spiral_model_v16.py:274/309-310`), '
+                      '整条环落在一个关联长度内, 此处的"分离区域"是格点尺度的。'
+                      '**不等于「RT 被证否」**; 反过来说, 即便 I3 <= 0 也**只是必要条件**'
+                      '—— 通过 != RT 被验证, 更 != 涌现时空 (B2 硬边界 '
+                      '`spiral_model_v16.py:52-53`)。成熟度不动: L4 仍是 C。'
+                      'MMI 与 SSA 不可互换引用: 后者是**自校验**, 前者才是判据。')
 
     # ---------------- 第一层 ----------------
     print("\n  ── 第一层 · 内部自洽性 ──")

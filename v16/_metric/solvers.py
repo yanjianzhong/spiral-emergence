@@ -80,6 +80,73 @@ def fit_central_charge(psi, L):
             'x': x, 'S': y, 'ns': ns}
 
 
+def block_entropy(psi, L, blocks):
+    """
+    任意**连续站点块并集**的冯诺依曼熵 (blocks = [(start, n), ...], 站点 0..L-1)。
+
+    `entanglement_curve` 的推广: A 不必是前缀, 也不必连续。站点约定**沿用现有代码**
+    —— `boundary_correlation_graph` 的 docstring 写死「站点 0 = 最高有效位」; 在
+    `psi.reshape([2]*L)` 里 axis 0 就是最高有效位 ⇒ 连续站点 ↔ 连续 axis, **不需转置**。
+    该约定由 v16.2·S2 冒烟 (`_v16_smoke_l4_mmi.py`) 用 `entanglement_curve(gs,16)[7]`
+    **逐位校验过** (n=1..8 全部 `|diff| = 0`)。
+
+    前提与 `entanglement_curve` 相同: 调用方传**已归一化**的态。
+    边界: 只支持**连续块**的并集; 非连续子集需另做轴置换, 本函数不覆盖。
+    """
+    t = np.asarray(psi).reshape([2] * L)
+    axes = []
+    for s, n in blocks:
+        axes.extend(range(s, s + n))
+    rest = [a for a in range(L) if a not in axes]
+    m = np.transpose(t, axes + rest).reshape(2 ** len(axes), -1)
+    sv = np.linalg.svd(m, compute_uv=False)
+    p = sv ** 2
+    p = p[p > 1e-15]
+    return float(-np.sum(p * np.log(p)))
+
+
+def mmi_tripartite(psi, L, widths=(1, 2, 3, 4)):
+    """
+    L4: 互信息的单调性 (MMI) —— 「存在几何对偶」的**必要**条件。
+
+        I3(A:B:C) = S(A) + S(B) + S(C) - S(AB) - S(AC) - S(BC) + S(ABC)  <=  0
+
+    它对**有几何对偶的全息态**成立, 对**一般量子态可被违反** (GHZ 即反例) ——
+    所以它是一条**真能失败**的判据。**不能用强次可加性 SSA 代替**: SSA 是定理,
+    对所有量子态恒成立 ⇒ 物理上不可能失败, 只能抓实现 bug (故此处 SSA 只作自校验)。
+
+    A/B/C 取连续等宽块 (0,w)/(w,w)/(2w,w), D 取余下部分; `widths` 须满足 4*max < L。
+    返回的 `ssa_min` = min[I(A:B) + I(B:C) - I(A:C)] 是**自校验**: 若为负 ⇒ 本实现错
+    (轴序 / 迹未归一 / 态非纯), 结论作废 —— **不是**物理结论。
+    `purity_max` = max|S(ABC) - S(D)| 同为自校验 (整体是纯态)。
+
+    **天花板 (必须与读数同页)**: MMI 成立只是**必要**条件 —— 通过 != RT 被验证, 更 !=
+    「涌现时空」(B2 硬边界 `spiral_model_v16.py:52-53`)。且本工作尺度上
+    xi ~ 19.3 > L = 16, 整条环落在一个**关联长度**之内, 此处的"分离区域"是**格点尺度**的。
+    故判词只能是「在 L 的可及尺度上是否满足必要条件」。
+    """
+    rows = []
+    for w in widths:
+        A, B, C = (0, w), (w, w), (2 * w, w)
+        sA = block_entropy(psi, L, [A])
+        sB = block_entropy(psi, L, [B])
+        sC = block_entropy(psi, L, [C])
+        sAB = block_entropy(psi, L, [A, B])
+        sAC = block_entropy(psi, L, [A, C])
+        sBC = block_entropy(psi, L, [B, C])
+        sABC = block_entropy(psi, L, [A, B, C])
+        rows.append(dict(w=w,
+                         i3=sA + sB + sC - sAB - sAC - sBC + sABC,
+                         ssa=2.0 * sB - sAB - sBC + sAC,
+                         purity=sABC - block_entropy(psi, L, [(3 * w, L - 3 * w)])))
+    return {'rows': rows,
+            'i3': [r['i3'] for r in rows],
+            'all_le_zero': all(r['i3'] <= 0.0 for r in rows),
+            'trend': rows[-1]['i3'] - rows[0]['i3'],
+            'ssa_min': min(r['ssa'] for r in rows),
+            'purity_max': max(abs(r['purity']) for r in rows)}
+
+
 
 
 # ============================================================================
