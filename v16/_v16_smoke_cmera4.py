@@ -385,4 +385,8 @@ def main():
 
 
 if __name__ == '__main__':
+    # 本脚本此前**没有**这一行, 是仓库里少数几个漏掉该约定的脚本之一: 重定向到文件/管道时
+    # Windows 会按 `locale.getpreferredencoding()`(本机 cp936) 编码, 而 runner 按 utf-8 解
+    # ⇒ 整段中文变乱码, 中文 `must_contain` 假红(2026-09-26 实测)。
+    sys.stdout.reconfigure(encoding='utf-8')
     sys.exit(main())

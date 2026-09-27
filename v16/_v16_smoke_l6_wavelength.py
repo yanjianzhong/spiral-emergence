@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-v16 · S1 冒烟 —— L6 斑图波长: 独立估计量互核 + 分辨率/种子 2×2
-[_VERSION_TAG = 'v16-smoke-l6-lambda-1']
+v16 · S1 冒烟 —— L6 斑图波长: 独立估计量互核 + 分辨率/种子 2×2 + 第三估计量
+[_VERSION_TAG = 'v16-smoke-l6-lambda-2']
 
-**这是 v16.2_plan.md §5.1 的 S1**, 不进 runner (`_v16_run_all.py`), 不动任何登记值,
-不碰生产路径。真调 `stage6_life` / `derive_L6_grid` / `_char_scale_checked`。
+**v2 (v16.3 · §7.4 S4 / 方向 D3)**: 新增 **D 段** —— 第三个估计量 (环形 ACF 首个
+过零点) + 三估计量对照 + **落盘 JSON**。**A/B/C 三段一行未改** (§4.3 明令):
+A 段的 `SPACING_LOGGED = 0.1782` 复现断言与 C 段的 2×2 读数**一个都不动**。
+本段同样**不加守卫、不动分母**, 且**禁止"多数票"** —— 不许拿第三个去裁定前两个谁对。
+
+**这是 v16.2_plan.md §5.1 的 S1** (v2 追加 v16.3_plan.md §4 的 D3), 不进 runner
+(`_v16_run_all.py`), 不动任何登记值, 不碰生产路径。
+真调 `stage6_life` / `derive_L6_grid` / `_char_scale_checked`。
 
 要回答的问题 (背景见 plan 订正②):
   `stage6_life` 返回的 `spacing` (`stage67.py:362`) **至今没有任何守卫读它** ——
   `_v16_run.log:166` 印过 `斑图波长~0.1782`, 但那只是个**被打印的数**。
   本冒烟要把它变成**被两个独立估计量夹住的量**, 并分离一个此前未被识别的混杂因子。
 
-三段:
+四段:
   A. **生产复现**(自校验, 必须先过): 用与 `_model/main.py` **逐字相同**的调用跑一次,
      `spacing` 必须复现 `0.1782` (`_v16_run.log:166`, 打印精度 4 位)。
      ⚠️ 不过则整个冒烟的结论作废 —— 那说明测的不是生产那个量 (A 段"同方程不同盒子"
@@ -30,6 +36,26 @@ v16 · S1 冒烟 —— L6 斑图波长: 独立估计量互核 + 分辨率/种�
      这是一个**混杂因子**, 与 A 段当年栽过的"盒子大小 vs 参数相区"同型。
      2×2 = {N=36, 48} × {种子格点固定, 物理固定} ⇒ 把两者分开。
      扫描**只在本冒烟里另起调用**, 不改 `stage6_life` 的初值规则 (那会改生产读数)。
+  D. **(v2 新增 · v16.3 §4 D3) 第三个估计量**: 丙 = **环形自相关的首个过零点**。
+     **硬约束**(§4.2, 已锚定): 乙的壳边界在物理 k 空间上是 `k = j*2*pi/L`, 与 N 无关
+     ⇒ "λ乙 的物理值与 N 无关"是**构造使然的恒等式, 不是证据**。第三估计量**若也从
+     FFT 壳取峰, 会继承同一个恒等式** ⇒ 丙 **必须来自不依赖壳量化的量**。
+     故丙用**环形直接求和**算 ACF (`np.roll` 逐滞后点积), **不走 FFT**;
+     定义域本就是周期的 (PDE 用 `np.roll` 离散), 环形 ACF 是**正确对象**, 不是权宜。
+     正弦约定: 对波长 λ 的正弦, `ACF ∝ cos(2*pi*m/λ)`, 首个过零点在 `m = λ/4`
+     ⇒ **丙 = 4*m0** (格; 换域长乘 `h`)。
+     **预登记判据 (§4.3)**: 令 `r甲 = |丙-甲|/甲`, `r乙 = |丙-乙|/乙`
+     (全部换算到**域长**再比, 见 C 段的单位警告)。
+       * **T1**: `min(r甲,r乙) <= 0.5 * max(r甲,r乙)` (至少 2:1 分离) ⇒ **只登记丙站哪边**;
+       * **T2**: 否则 (含无过零点 => 不可判) ⇒ 登记「**三个估计量互不一致
+         ⇒ λ 相关的任何结论作废**」—— **这才是这条方向真正的产出**。
+     **禁止**: ① 多数票 (不许拿丙裁定甲/乙谁对); ② 加守卫 (任何"给 `lambda_target`
+     比值补守卫"都是为通过率造指标); ③ 改 A/B/C 段既有断言。
+     顺带补订正 5 的洞: 本段把三估计量结果**写进新文件**
+     `v16/output/l6_lambda_three_estimators.json` (**不覆盖任何已登记产物**)。
+     ⚠️ 路径口径: 计划 §4.2 逐字写的是 `v16/output/`; 仓库既有产物目录是
+     `v16/result/` (`_model/core.py:53` 的 `_OUTPUT_DIR`)。本冒烟**按计划新开
+     `v16/output/`**, 不往 `result/` 里塞非登记产物 (该目录由 runner 消费)。
 
 诚实边界 (写在这里, 不许在报告里省):
   * 本冒烟**不判定** L6 的物理主张。`V8 生命斑图涌现` 仍是 L6 七条守卫里**唯一**扛
@@ -46,6 +72,7 @@ v16 · S1 冒烟 —— L6 斑图波长: 独立估计量互核 + 分辨率/种�
     python v16/_v16_smoke_l6_wavelength.py
 """
 
+import json
 import os
 import sys
 import time
@@ -57,7 +84,7 @@ import numpy as np  # noqa: E402
 import spiral_model_v16 as G  # noqa: E402
 import spiral_metric_v16 as MM  # noqa: E402
 
-_VERSION_TAG = 'v16-smoke-l6-lambda-1'
+_VERSION_TAG = 'v16-smoke-l6-lambda-2'   # v2: 追加 D 段 (v16.3 §4 D3); A/B/C 未改
 
 # A 段的自校验靶: `_v16_run.log:166` 逐字 "斑图波长~0.1782 (域长 0.5)" (打印精度 .4f)
 SPACING_LOGGED = 0.1782
@@ -65,6 +92,9 @@ SPACING_TOL = 5e-5            # .4f 的半个末位
 
 # C 段: 物理固定种子所锚的参考边长 = 生产配置 (N=36) 下 4 格的物理尺寸
 _SEED_REF_CELLS = 4
+
+# D 段 (v2): 落盘目标 —— 计划 §4.2 逐字指定的 `v16/output/`, **新文件**
+_OUT_JSON = os.path.join(_ROOT, 'v16', 'output', 'l6_lambda_three_estimators.json')
 
 _FAILS = []
 
@@ -128,10 +158,49 @@ def spectral_lambda(v, N):
     return float(lam), bool(valid), k_pk, k_fund
 
 
+# ---------------------------------------------------------------------------
+# D 段 (v2 新增) · 第三估计量丙: **环形自相关的首个过零点**
+# 为什么必须是这个: 乙的壳边界在物理 k 空间里是 `k = j*2*pi/L` (与 N 无关),
+# 那是 FFT 盒子的构造使然 ⇒ 任何"从壳取峰"的估计量都继承该恒等式, 当不了独立证据。
+# 本函数**不走 FFT**: 逐滞后直接点积 (环形, `np.roll`) ⇒ 与壳无关。
+# 定义域是周期的 (PDE 用 `np.roll` 离散) ⇒ 环形自相关是正确对象。
+# 口径与甲对齐: 场取**逐行/逐列去均值后的起伏** (`v[i]-v[i].mean()`, 同 `spacing_and_se`)。
+# ---------------------------------------------------------------------------
+def acf_first_zero(v, N, max_lag=None):
+    """
+    返回 (m0, m_min, r):
+      m0    = 首个过零点 (r 由正变非正) 的滞后, 格; 无过零 => None
+      m_min = 首个局部极小的滞后, 格; 无 => None
+      r     = 归一化 ACF, r[0] = 1, 长度 max_lag+1
+    行、列两个方向各算一条再平均 —— 只用行会与甲共用一个方向的偏差。
+    """
+    M = max_lag if max_lag is not None else N // 2
+    acc = np.zeros(M + 1)
+    cnt = 0
+    for axis in (0, 1):
+        d = v - v.mean(axis=axis, keepdims=True)
+        for i in range(N):
+            x = d[i, :] if axis == 0 else d[:, i]
+            nrm = float(np.dot(x, x))
+            if nrm <= 0.0:
+                continue
+            for m in range(M + 1):
+                acc[m] += float(np.dot(x, np.roll(x, -m))) / nrm
+            cnt += 1
+    if cnt == 0:
+        return None, None, None
+    r = acc / cnt
+    m0 = next((m for m in range(1, M + 1) if r[m] <= 0.0), None)
+    m_min = next((m for m in range(1, M)
+                  if r[m] < r[m - 1] and r[m] <= r[m + 1]), None)
+    return m0, m_min, r
+
+
 def main():
     t0 = time.time()
     K = G.KNOBS
-    print(f"=== {_VERSION_TAG} · L6 斑图波长: 独立估计量互核 + 分辨率/种子 2×2 ===")
+    print(f"=== {_VERSION_TAG} · L6 斑图波长: 独立估计量互核 + 分辨率/种子 2×2 "
+          f"+ 第三估计量 (D 段, v16.3 §4 D3) ===")
     print(f"    口径: 真调 stage6_life / derive_L6_grid / _char_scale_checked; 不进 runner。")
 
     # --- 生产网格: N 由 derive_L6_grid 派生, 不写死 ---------------------------
@@ -270,6 +339,151 @@ def main():
     print(f"\n    诚实边界: 本段只检验『斑图波长由化学参数定, 不由几何定』这句话"
           f"(`_v16_run.log:169` / `main.py:261-262` 一直在印, **至今无守卫**)。"
           f"\n    它**不**判定 L6 的物理主张 —— `V8` 仍是那 7 条里唯一扛物理主张的守卫。")
+
+    # =====================================================================
+    # D 段 (v2 新增 · v16.3 §7.4 S4 / §4 方向 D3): 第三个估计量
+    # =====================================================================
+    print(f"\n--- D · 第三估计量: 环形 ACF 首个过零点 (v16.3 §4 D3, **避开壳量化**) ---")
+    print(f"    为什么不能用 FFT 取峰: 壳边界在物理 k 空间是 k = j*2*pi/L, **与 N 无关**")
+    print(f"    (FFT 盒随盒子一起缩放) => 任何'从壳取峰'的估计量都继承这个恒等式,")
+    print(f"    当不了独立证据 (C 段末尾已记该陷阱)。故丙**不走 FFT**, 逐滞后直接点积。")
+
+    m0, m_min, acf_r = acf_first_zero(s6['v'], N0)
+    lam_c_cells = 4.0 * m0 if m0 is not None else float('nan')   # 正弦约定 λ = 4*m0
+    lam_c_dom = lam_c_cells * s6['h']
+    n_cross = int(np.sum(np.diff(np.sign(acf_r)) != 0)) if acf_r is not None else 0
+    print(f"    ACF 诊断: 首个过零滞后 m0 = {m0 if m0 is not None else 'n/a'} 格, "
+          f"首个极小 m_min = {m_min if m_min is not None else 'n/a'} 格, "
+          f"滞后 <= {N0 // 2} 内符号翻转次数 = {n_cross}")
+    if acf_r is not None:
+        show = min(len(acf_r), 13)
+        print(f"    r(m) 前 {show} 项 = " + ' '.join(f"{v:.3f}" for v in acf_r[:show]))
+    print(f"    (m0 与 m_min 是**原始诊断量**, 不参与判据; 只有 丙 = 4*m0 是估计量)")
+    if m0 is None:
+        print(f"    ⚠️ 在 N/2 内**无过零点** => 丙 不可判 (照登, 不许换定义凑一个数出来)。")
+
+    # 全部换算到**域长**再比 (C 段已记: λ甲_格 天然含一个 N 因子, 不可跨 N 直比)
+    lam_a_dom = sp_a                      # 甲 本就是域长 (2L/zc)
+    lam_b_dom = lam_b * s6['h']           # 乙 是格, 乘 h 换域长
+    print(f"\n    三估计量 (统一到**域长**; 括号内为格):")
+    print(f"      甲 零交叉计数 : {lam_a_dom:.6f}  ({lam_a:.4f} 格)   "
+          f"zc={zc:.3f} +- {se_zc:.3f} => 相对SE {rel_se * 100:.2f}%")
+    print(f"      乙 D2谱峰     : {lam_b_dom:.6f}  ({lam_b:.4f} 格)   "
+          f"valid={valid_b}, k_peak/k_fund = {k_pk / k_fund:.2f} 壳")
+    if m0 is None:
+        print(f"      丙 ACF过零    : **n/a** (无过零点)")
+    else:
+        print(f"      丙 ACF过零    : {lam_c_dom:.6f}  ({lam_c_cells:.4f} 格)   "
+              f"m0={m0} 格 (*4 是正弦约定, 见文件头)")
+    print(f"      甲 vs 乙 相对偏差 = {dev * 100:.2f}%  (v16.2 已登记值)")
+
+    verdict_d, r_a, r_b = '不可判', float('nan'), float('nan')
+    if m0 is not None:
+        r_a = abs(lam_c_dom - lam_a_dom) / lam_a_dom
+        r_b = abs(lam_c_dom - lam_b_dom) / lam_b_dom
+        sep = min(r_a, r_b) / max(r_a, r_b) if max(r_a, r_b) > 0 else float('nan')
+        print(f"\n    T1/T2 判定 (口径见文件头, **先于数据写死**):")
+        print(f"      r甲 = |丙-甲|/甲 = {r_a * 100:.2f}%,  r乙 = |丙-乙|/乙 = {r_b * 100:.2f}%")
+        print(f"      分离度 min/max = {sep:.3f}  (门槛 <= 0.5, 即至少 2:1)")
+        if sep <= 0.5:
+            verdict_d = 'T1-甲' if r_a < r_b else 'T1-乙'
+            near = '甲' if r_a < r_b else '乙'
+            print(f"      => **T1 成立**: 丙 落在**{near}**一侧 (只登记它站哪边, 不加守卫)。")
+        else:
+            verdict_d = 'T2'
+            print(f"      => **T2 成立**: 丙 **两侧都不挨** (分离不足 2:1) ⇒ 登记为")
+            print(f"         「**三个估计量互不一致 => λ 相关的任何结论作废**」。")
+        if min(r_a, r_b) < rel_se:
+            print(f"      ⚠️ **弱读警告**: 较小偏差 {min(r_a, r_b) * 100:.2f}% **低于甲自身的行间SE**"
+                  f" {rel_se * 100:.2f}%,")
+            print(f"         故 T1 的「落在某一侧」须弱读为「与噪声不可分」,")
+            print(f"         **不可**读成「已确认同源」。")
+    # ---- 约定敏感性 (**事后追加**, 见下声明) --------------------------------
+    # 首版按预登记约定 lambda = 4*m0 判出上方的落支。但 4*m0 只对**纯正弦**成立
+    # (ACF ∝ cos(2*pi*m/lambda) => 首个过零在 lambda/4)。周期型信号的**标准**读法是
+    # ACF 的**首个次级极大**位置 (ACF 与信号同周期)。两者对本场是否一致, 是一件事
+    # **必须先查**的事: 若不一致, 落支就是约定造出来的, 不是数据给的。
+    # ⚠️ **本诊断不参与判据**: 不改上方判词、不改阈值、不改任何预登记口径;
+    #    它只回答「丙 的落支是不是约定产物」。**事后追加, 照实声明。**
+    m2 = None
+    if acf_r is not None:
+        m2 = next((m for m in range(2, N0 // 2)
+                   if acf_r[m] > acf_r[m - 1] and acf_r[m] >= acf_r[m + 1]), None)
+    print(f"\n    · 约定敏感性 (事后追加的诊断, **不参与判据**):")
+    if m2 is None:
+        print(f"      ACF 在 N/2 内无次级极大 => 本诊断不可判, 不影响上方判词。")
+    else:
+        lam_c2 = float(m2) * s6['h']
+        ra2 = abs(lam_c2 - lam_a_dom) / lam_a_dom
+        rb2 = abs(lam_c2 - lam_b_dom) / lam_b_dom
+        print(f"      同一份 ACF, 换用**标准**约定「首个次级极大」(m={m2} 格):")
+        print(f"        λ丙' = {lam_c2:.6f} 域长 ({m2} 格)  vs  预登记约定 4*m0 = "
+              f"{lam_c_dom:.6f} (={lam_c_dom / s6['h']:.0f} 格)")
+        print(f"        r甲' = {ra2 * 100:.2f}%,  r乙' = {rb2 * 100:.2f}%  "
+              f"=> 落在**{'甲' if ra2 < rb2 else '乙'}**一侧 (分离度 "
+              f"{min(ra2, rb2) / max(ra2, rb2):.3f})")
+        if m0 is None:
+            print(f"      (预登记约定无过零点 => 无 m0 可比, 本诊断只作单侧登记。)")
+        elif (ra2 < rb2) != (r_a < r_b):
+            print(f"      ⚠️ **落支随约定翻转**: 预登记约定判 {verdict_d}, 标准约定判 "
+                  f"**T1-{'甲' if ra2 < rb2 else '乙'}**。")
+            print(f"         => 丙 **没有判别力** —— 它没在甲/乙之间裁决, 裁决的是**约定**。")
+            print(f"         实质结论按 §4.3 的 T2 精神读: 「**三个估计量互不一致 =>")
+            print(f"         λ 相关的任何结论作废**」, 尽管按预登记字面规则落在 T1。")
+        else:
+            print(f"      两约定同侧 => 落支**不是**约定产物, 上方判词可用。")
+
+    print(f"\n    ⚠️ **禁止多数票** ( §4.3 明令): 本段**不**用丙去裁定甲与乙谁对;")
+    print(f"       它只回答'丙站哪边'或'三者互不一致'。")
+    print(f"    ⚠️ 本段**不加守卫、不动分母**: L6 仍是 C, `V8` 仍是唯一扛物理主张的守卫。")
+
+    # --- 落盘 (补订正 5 的洞: 此前读数只在 scrollback 里) --------------------
+    blob = {
+        "version_tag": _VERSION_TAG,
+        "source": {"script": "v16/_v16_smoke_l6_wavelength.py",
+                   "section": "D (v16.3 §7.4 S4 / §4 D3)",
+                   "n": int(N0), "h": float(s6['h']), "L_domain": float(L_dom)},
+        "estimators": {
+            "jia": {"lambda_domain": float(lam_a_dom), "lambda_cells": float(lam_a),
+                    "zc": float(zc), "zc_se": float(se_zc), "zc_rel_se": float(rel_se)},
+            "yi": {"lambda_domain": float(lam_b_dom), "lambda_cells": float(lam_b),
+                   "valid": bool(valid_b), "k_peak": float(k_pk), "k_fund": float(k_fund),
+                   "shell_index": float(k_pk / k_fund) if k_fund else None},
+            "bing": {"lambda_domain": None if m0 is None else float(lam_c_dom),
+                     "lambda_cells": None if m0 is None else float(lam_c_cells),
+                     "m0_cells": m0, "m_min_cells": m_min, "sign_flips": int(n_cross)},
+        },
+        "cross_checks": {"jia_vs_yi_rel": float(dev),
+                         "spacing_reproduced": float(sp_prod),
+                         "spacing_logged": float(SPACING_LOGGED)},
+        "adjudication": {"r_jia": None if m0 is None else float(r_a),
+                         "r_yi": None if m0 is None else float(r_b),
+                         "verdict": verdict_d},
+        # 事后追加的诊断 (不参与判据): 同一份 ACF 换用「首个次级极大」约定再看一次。
+        # 声明: 该项在首版 D 段输出之后追加; 它**不改** verdict 字段与任何阈值。
+        "sensitivity_posthoc": {
+            "added_after_first_d_run": True,
+            "convention": "first_secondary_maximum (ACF 与信号同周期; 标准读法)",
+            "m2_cells": m2,
+            "lambda_domain": None if m2 is None else float(m2) * float(s6['h']),
+            "r_jia": None if m2 is None else float(abs(float(m2) * s6['h'] - lam_a_dom) / lam_a_dom),
+            "r_yi": None if m2 is None else float(abs(float(m2) * s6['h'] - lam_b_dom) / lam_b_dom),
+            "verdict_flips": None if (m2 is None or m0 is None) else bool(
+                (abs(float(m2) * s6['h'] - lam_a_dom) / lam_a_dom
+                 < abs(float(m2) * s6['h'] - lam_b_dom) / lam_b_dom) != (r_a < r_b)),
+            "note": "若 verdict_flips 为真, 则 D3 的实质产出应按 §4.3 T2 精神读: 三估计量互不一致。",
+        },
+        "caveats": {"no_majority_vote": True, "no_shell_quantization": True,
+                    "no_guard": True, "no_denominator_change": True,
+                    "lambda_b_physical_n_independent_is_identity": True},
+    }
+    os.makedirs(os.path.dirname(_OUT_JSON), exist_ok=True)
+    with open(_OUT_JSON, 'w', encoding='utf-8') as fh:
+        json.dump(blob, fh, ensure_ascii=False, indent=2)
+    print(f"\n    落盘: {os.path.relpath(_OUT_JSON, _ROOT)}  "
+          f"(**新文件**, 不覆盖任何已登记产物; 无时间戳字段以保逐字节可复现)")
+    print(f"    ⚠️ 路径口径: 计划 §4.2 写 `v16/output/`; 仓库既有产物目录是 "
+          f"`v16/result/` (core.py:53), 本冒烟**不往 result/ 里塞非登记产物**。")
 
     ok = not _FAILS
     print(f"\n=== 结果: A 段自校验 {'通过' if ok else '**失败 => 结论作废**'}; "

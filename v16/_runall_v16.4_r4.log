@@ -1,0 +1,89 @@
+﻿=== v16 runner  [16 条, fast 层] ===
+日志: D:\dev\product\python\spiral-emergence\v16\_runall.log
+     上一份已归档 -> _runall_20260927-084923.log
+  [fast] cmera                      
+  [fast] cmera2                     预期失败
+  [fast] cmera3                     
+  [fast] cmera4                     
+  [fast] cmera5                     
+  [fast] b1_void_limit              
+  [fast] b1_ledger_row              
+  [fast] b3_ledger                  
+  [fast] gaussian.stage1            
+  [fast] gaussian.stage2check       
+  [fast] gaussian.run_K4            
+  [fast] presets                    
+  [fast] l5_l6_bridge               
+  [fast] derive_presets             
+  [fast] presets_v164               
+  [fast] claim_ledger.standalone    预期失败
+
+>>> cmera ...
+<<< cmera: 符合登记预期  (222.5 s)
+
+>>> cmera2 ...
+<<< cmera2: 符合登记预期  (336.2 s)
+
+>>> cmera3 ...
+<<< cmera3: 符合登记预期  (13.2 s)
+
+>>> cmera4 ...
+<<< cmera4: 符合登记预期  (58.9 s)
+
+>>> cmera5 ...
+<<< cmera5: 符合登记预期  (10.6 s)
+
+>>> b1_void_limit ...
+<<< b1_void_limit: 符合登记预期  (14.9 s)
+
+>>> b1_ledger_row ...
+<<< b1_ledger_row: 符合登记预期  (9.7 s)
+
+>>> b3_ledger ...
+<<< b3_ledger: 符合登记预期  (0.2 s)
+
+>>> gaussian.stage1 ...
+<<< gaussian.stage1: 符合登记预期  (9.2 s)
+
+>>> gaussian.stage2check ...
+<<< gaussian.stage2check: 符合登记预期  (62.6 s)
+
+>>> gaussian.run_K4 ...
+<<< gaussian.run_K4: 符合登记预期  (63.8 s)
+
+>>> presets ...
+<<< presets: 符合登记预期  (7.3 s)
+
+>>> l5_l6_bridge ...
+<<< l5_l6_bridge: 符合登记预期  (8.2 s)
+
+>>> derive_presets ...
+<<< derive_presets: 符合登记预期  (6.7 s)
+
+>>> presets_v164 ...
+<<< presets_v164: 符合登记预期  (17.6 s)
+
+>>> claim_ledger.standalone ...
+<<< claim_ledger.standalone: 符合登记预期  (6.5 s)
+
+==============================================================================
+  该通过的: 14/14  (100.0%)
+    ✓ cmera                        222.5s  符合登记预期
+    ✓ cmera3                        13.2s  符合登记预期
+    ✓ cmera4                        58.9s  符合登记预期
+    ✓ cmera5                        10.6s  符合登记预期
+    ✓ b1_void_limit                 14.9s  符合登记预期
+    ✓ b1_ledger_row                  9.7s  符合登记预期
+    ✓ b3_ledger                      0.2s  符合登记预期
+    ✓ gaussian.stage1                9.2s  符合登记预期
+    ✓ gaussian.stage2check          62.6s  符合登记预期
+    ✓ gaussian.run_K4               63.8s  符合登记预期
+    ✓ presets                        7.3s  符合登记预期
+    ✓ l5_l6_bridge                   8.2s  符合登记预期
+    ✓ derive_presets                 6.7s  符合登记预期
+    ✓ presets_v164                  17.6s  符合登记预期
+  预期失败(单列): 2 条, 未如预期 0 条
+    ✓(如预期) cmera2                       336.2s  符合登记预期
+    ✓(如预期) claim_ledger.standalone        6.5s  符合登记预期
+
+总用时 848.2 s   日志: D:\dev\product\python\spiral-emergence\v16\_runall.log
