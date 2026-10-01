@@ -1,0 +1,4 @@
+[console_scripts]
+spiral-metric-v16 = v16.spiral_metric_v16:main
+spiral-model-v16 = v16.spiral_model_v16:main
+spiral-run-all = v16._v16_run_all:main
