@@ -1,8 +1,20 @@
 __pycache__/
 *.pyc
 .claude
+#data
 *.zip
 *.tar.gz
 D0363_readme.txt
+#plan
 v16*.md
+bash.exe.stackdump
+return
+
+# arxiv
 arXiv/
+
+
+spiral_model.egg-info/
+
+.vscode/*
+!.vscode/settings.json
