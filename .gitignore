@@ -12,9 +12,7 @@ return
 
 # arxiv
 arXiv/
-
-
 spiral_model.egg-info/
+.vscode/
 
-.vscode/*
-!.vscode/settings.json
+
