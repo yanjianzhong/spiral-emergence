@@ -6,8 +6,8 @@ abstract: "Python implementation of a negative-control ledger for multi-stage nu
 authors:
   - family-names: "Yan"
     given-names: "JianZhong"
-version: v16.6
-date-released: 2026-10-01
+version: v16.8
+date-released: 2026-10-04
 repository-code: "https://github.com/yanjianzhong/spiral-emergence"
 license: Apache-2.0
 keywords:
@@ -22,6 +22,6 @@ identifiers:
   - description: "Zenodo concept DOI (all versions)"
     type: doi
     value: "10.5281/zenodo.22810161"
-  - description: "Zenodo version DOI (v16.6)"
+  - description: "Zenodo version DOI (v16.8)"
     type: doi
-    value: "10.5281/zenodo.23072750"
+    value: "10.5281/zenodo.23137311"
