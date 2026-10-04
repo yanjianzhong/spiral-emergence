@@ -60,7 +60,7 @@ v16 的分母从 54 涨到 57，新增的三条**全部是计分守卫**，全�
 4. **源码自包含拆分** —— `v16/_model/`（9 个 .py）与 `v16/_metric/`（9 个 .py）承载实体，
    `spiral_model_v16.py` / `spiral_metric_v16.py` 退化为**门面**（re-export）。
    原文件冻结在 `v16/_baseline/orig/`。**拆分只动位置，不动数值** —— §5 的冻结核对是它的验收。
-5. **唯一 runner** —— `v16/_v16_run_all.py`，三档 `fast`(16) / `slow`(6) / `full`；
+5. **唯一 runner** —— `v16/_v16_run_all.py`，三档 `fast`(20) / `slow`(7) / `full`(1)；
    退出码 0 = 全部如登记，3 = 回归，2 = runner 自身错误。
 6. **缺陷修复若干条** —— 见 §6。其中"CLI 拼错子命令静默落进 stage2"一条
    （会白跑约 40 分钟）是**冒烟逼出来的**，不是看代码看出来的。
@@ -641,10 +641,11 @@ v16 日志: 解析 计分57/诊断20 (行 77, 去重 77) vs 日志自印 计分5
 
 - 依赖未变：`numpy` / `scipy` / `matplotlib` / `networkx` / `quimb`（`v16/requirements.txt`）。
 - **全流程**：`cd v16 && python spiral_model_v16.py`（实测 **1879 s**，`EXIT=0`）。
-- **冒烟 / 分档**：`cd v16 && python _v16_run_all.py`（默认 `fast`，16 条；
-  `slow` 6 条；`full` 含同进程 `full_pipeline+claim_ledger`）。
+- **冒烟 / 分档**：`cd v16 && python _v16_run_all.py`（默认 `fast`，20 条；
+  `slow` 7 条；`full` 含同进程 `full_pipeline+claim_ledger`）。
   退出码：`0` = 全部如登记，`3` = 回归，`2` = runner 自身错误。
-  ⚠️ **`EXIT=3` 不必然是回归** —— B2 探针 2 与 `b2_boson_control` 是**登记的预期失败**。
+  ⚠️ **`EXIT=3` 不必然是回归** —— B2 探针 2、`b2_boson_control` 与 `t6_l4bridge`
+  是**登记的预期失败**。
   ✅ **中文 `must_contain` 的编码依赖已修（v16.3）** —— runner 给子进程强制
   `PYTHONIOENCODING='utf-8'`，**不再依赖调用者的环境**；详见 §7 第 10 条。
   （余下四个 `cmera*` 脚本仍缺惯例行，属独立决定，本轮未做。）
