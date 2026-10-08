@@ -1,6 +1,3 @@
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22810161.svg)](https://doi.org/10.5281/zenodo.22810161)
-[![ORCID](https://img.shields.io/badge/ORCID-0009--0007--0045--7114-green?logo=orcid)](https://orcid.org/0009-0007-0045-7114)
 > **spiral-emergence: Negative-control ledger for multi-stage numerical pipelines**  
 > © 2024-2026 Jianzhong Yan — All commits DCO-signed (`Signed-off-by`).  
 > Version: v16.8 | Zenodo concept DOI (all versions): [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.8 DOI: [10.5281/zenodo.23137311](https://doi.org/10.5281/zenodo.23137311)
@@ -16,12 +13,19 @@
 
 
 
-
+<div align="center">
 
 # A negative-control ledger for multi-stage numerical pipelines, demonstrated on Ising/MERA
-# 一种用于多阶段数值流水线的负对照账本方法 **（以临界横场Ising链/张量网络MERA为例）**
 
-**当前版本：v16.8**（2026-10-04）。
+### 一种用于多阶段数值流水线的负对照账本方法 **（以临界横场Ising链/张量网络MERA为例）**
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22810161.svg)](https://doi.org/10.5281/zenodo.22810161)
+[![ORCID](https://img.shields.io/badge/ORCID-0009--0007--0045--7114-green?logo=orcid)](https://orcid.org/0009-0007-0045-7114)
+[![DCO](https://img.shields.io/badge/DCO-Signed-brightgreen.svg)](https://developercertificate.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![Release](https://img.shields.io/github/v/release/yanjianzhong/spiral-emergence)](https://github.com/yanjianzhong/spiral-emergence/releases)
+</div>
 
 ---
 
