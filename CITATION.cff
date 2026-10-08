@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software or the negative-control ledger method, please cite it as below."
 type: software
-title: "spiral-emergence: negative-control ledger pipeline"
+title: "spiral-emergence: Negative-control ledger for multi-stage numerical pipelines"
 abstract: "Python implementation of a negative-control ledger for multi-stage numerical pipelines, demonstrated on a critical Ising chain and MERA tensor networks. Includes guard registry, audit tables, reproducibility guards, and runtime completeness checks. Companion code to the manuscript 'A negative-control ledger for multi-stage numerical pipelines — demonstrated on Ising/MERA'."
 authors:
   - family-names: "Yan"
@@ -20,7 +20,7 @@ identifiers:
     value: "10.5281/zenodo.23137311"
 preferred-citation:
   type: software
-  title: "spiral-emergence: negative-control ledger pipeline"
+  title: "spiral-emergence: Negative-control ledger for multi-stage numerical pipelines"
   version: v16.8
   date-released: 2026-10-04
   doi: 10.5281/zenodo.23137311

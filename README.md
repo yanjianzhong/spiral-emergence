@@ -1,7 +1,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22810161.svg)](https://doi.org/10.5281/zenodo.22810161)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0007--0045--7114-green?logo=orcid)](https://orcid.org/0009-0007-0045-7114)
-> **spiral-emergence: negative-control ledger pipeline**  
+> **spiral-emergence: Negative-control ledger for multi-stage numerical pipelines**  
 > © 2024-2026 Jianzhong Yan — All commits DCO-signed (`Signed-off-by`).  
 > Version: v16.8 | Zenodo concept DOI (all versions): [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.8 DOI: [10.5281/zenodo.23137311](https://doi.org/10.5281/zenodo.23137311)
 >
