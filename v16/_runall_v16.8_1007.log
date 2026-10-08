@@ -1,0 +1,149 @@
+=== v16 runner  [28 条, --full] ===
+日志: D:\dev\product\python\spiral-emergence\v16\_runall.log
+     上一份已归档 -> _runall_20261007-204033.log
+  [fast] cmera                      
+  [fast] cmera2                     预期失败
+  [fast] cmera3                     
+  [fast] cmera4                     
+  [fast] cmera5                     
+  [slow] b2_boson_control           预期失败
+  [fast] b1_void_limit              
+  [fast] b1_ledger_row              
+  [fast] b3_ledger                  
+  [fast] gaussian.stage1            
+  [fast] gaussian.stage2check       
+  [fast] gaussian.run_K4            
+  [slow] gaussian.run_K5            
+  [slow] gaussian.run_K6            
+  [slow] gaussian.run_K             
+  [slow] gaussian.stage2            
+  [slow] gaussian.diagnostic_B      
+  [fast] presets                    
+  [fast] l5_l6_bridge               
+  [fast] derive_presets             
+  [fast] presets_v164               
+  [fast] t6_admission               
+  [fast] t6_tiling                  
+  [fast] t6_layer                   
+  [fast] t6_l4bridge                预期失败
+  [slow] t6_l5measure               
+  [fast] claim_ledger.standalone    预期失败
+  [full] full_pipeline+claim_ledger 
+
+>>> cmera ...
+<<< cmera: 符合登记预期  (307.4 s)
+
+>>> cmera2 ...
+<<< cmera2: 符合登记预期  (251.8 s)
+
+>>> cmera3 ...
+<<< cmera3: 符合登记预期  (11.3 s)
+
+>>> cmera4 ...
+<<< cmera4: 符合登记预期  (44.8 s)
+
+>>> cmera5 ...
+<<< cmera5: 符合登记预期  (9.4 s)
+
+>>> b2_boson_control ...
+<<< b2_boson_control: 符合登记预期  (546.8 s)
+
+>>> b1_void_limit ...
+<<< b1_void_limit: 符合登记预期  (13.0 s)
+
+>>> b1_ledger_row ...
+<<< b1_ledger_row: 符合登记预期  (8.2 s)
+
+>>> b3_ledger ...
+<<< b3_ledger: 符合登记预期  (0.1 s)
+
+>>> gaussian.stage1 ...
+<<< gaussian.stage1: 符合登记预期  (7.3 s)
+
+>>> gaussian.stage2check ...
+<<< gaussian.stage2check: 符合登记预期  (48.4 s)
+
+>>> gaussian.run_K4 ...
+<<< gaussian.run_K4: 符合登记预期  (51.1 s)
+
+>>> gaussian.run_K5 ...
+<<< gaussian.run_K5: 符合登记预期  (82.2 s)
+
+>>> gaussian.run_K6 ...
+<<< gaussian.run_K6: 符合登记预期  (222.3 s)
+
+>>> gaussian.run_K ...
+<<< gaussian.run_K: 符合登记预期  (513.0 s)
+
+>>> gaussian.stage2 ...
+<<< gaussian.stage2: 符合登记预期  (970.1 s)
+
+>>> gaussian.diagnostic_B ...
+<<< gaussian.diagnostic_B: 符合登记预期  (5.6 s)
+
+>>> presets ...
+<<< presets: 符合登记预期  (5.4 s)
+
+>>> l5_l6_bridge ...
+<<< l5_l6_bridge: 符合登记预期  (5.4 s)
+
+>>> derive_presets ...
+<<< derive_presets: 符合登记预期  (5.6 s)
+
+>>> presets_v164 ...
+<<< presets_v164: 符合登记预期  (11.6 s)
+
+>>> t6_admission ...
+<<< t6_admission: 符合登记预期  (0.6 s)
+
+>>> t6_tiling ...
+<<< t6_tiling: 符合登记预期  (0.3 s)
+
+>>> t6_layer ...
+<<< t6_layer: 符合登记预期  (0.6 s)
+
+>>> t6_l4bridge ...
+<<< t6_l4bridge: 符合登记预期  (5.9 s)
+
+>>> t6_l5measure ...
+<<< t6_l5measure: 符合登记预期  (180.2 s)
+
+>>> claim_ledger.standalone ...
+<<< claim_ledger.standalone: 符合登记预期  (6.1 s)
+
+>>> full_pipeline+claim_ledger ...
+<<< full_pipeline+claim_ledger: 符合登记预期  (953.3 s)
+
+==============================================================================
+  该通过的: 24/24  (100.0%)
+    ✓ cmera                        307.4s  符合登记预期
+    ✓ cmera3                        11.3s  符合登记预期
+    ✓ cmera4                        44.8s  符合登记预期
+    ✓ cmera5                         9.4s  符合登记预期
+    ✓ b1_void_limit                 13.0s  符合登记预期
+    ✓ b1_ledger_row                  8.2s  符合登记预期
+    ✓ b3_ledger                      0.1s  符合登记预期
+    ✓ gaussian.stage1                7.3s  符合登记预期
+    ✓ gaussian.stage2check          48.4s  符合登记预期
+    ✓ gaussian.run_K4               51.1s  符合登记预期
+    ✓ gaussian.run_K5               82.2s  符合登记预期
+    ✓ gaussian.run_K6              222.3s  符合登记预期
+    ✓ gaussian.run_K               513.0s  符合登记预期
+    ✓ gaussian.stage2              970.1s  符合登记预期
+    ✓ gaussian.diagnostic_B          5.6s  符合登记预期
+    ✓ presets                        5.4s  符合登记预期
+    ✓ l5_l6_bridge                   5.4s  符合登记预期
+    ✓ derive_presets                 5.6s  符合登记预期
+    ✓ presets_v164                  11.6s  符合登记预期
+    ✓ t6_admission                   0.6s  符合登记预期
+    ✓ t6_tiling                      0.3s  符合登记预期
+    ✓ t6_layer                       0.6s  符合登记预期
+    ✓ t6_l5measure                 180.2s  符合登记预期
+    ✓ full_pipeline+claim_ledger   953.3s  符合登记预期
+  预期失败(单列): 4 条, 未如预期 0 条
+    ✓(如预期) cmera2                       251.8s  符合登记预期
+    ✓(如预期) b2_boson_control             546.8s  符合登记预期
+    ✓(如预期) t6_l4bridge                    5.9s  符合登记预期
+    ✓(如预期) claim_ledger.standalone        6.1s  符合登记预期
+
+总用时 4268.2 s   日志: D:\dev\product\python\spiral-emergence\v16\_runall.log
