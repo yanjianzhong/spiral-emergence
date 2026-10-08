@@ -1,3 +1,10 @@
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22810161.svg)](https://doi.org/10.5281/zenodo.22810161)
+[![ORCID](https://img.shields.io/badge/ORCID-0009--0007--0045--7114-green?logo=orcid)](https://orcid.org/0009-0007-0045-7114)
+> **spiral-emergence: negative-control ledger pipeline**  
+> © 2024-2026 Jianzhong Yan — All commits DCO-signed (`Signed-off-by`).  
+> Version: v16.8 | Zenodo concept DOI (all versions): [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.8 DOI: [10.5281/zenodo.23137311](https://doi.org/10.5281/zenodo.23137311)
+>
 > **Note on naming.** This repository is named `spiral-emergence` for
 > historical reasons. The scientific contribution of this work is a
 > **negative-control ledger for multi-stage numerical pipelines**,
@@ -5,11 +12,12 @@
 > to study spiral geometry or emergence phenomena. See the companion
 > manuscript for details.
 >
-> **文档定位。** 本文**只描述当前状态，不记版本沿革** —— 版本演进登记在
-> [`CHANGELOG.md`](CHANGELOG.md)，逐条事实、判据与落支在
-> [`v16/spiral_v16_audit.md`](v16/spiral_v16_audit.md)。
-> **本文按内容引用、不按行号引用**：凡此前登记写作 `README:NN` 的，指向的是本文改为
-> 「当前状态」定位**之前**的那个版本（旧版全文见 git 历史与 `CHANGELOG.md`）。
+> **Document scope.** This document describes only the current state; it does not record version history — version evolution is logged in [`CHANGELOG.md`](CHANGELOG.md), and individual facts, criteria, and resolutions are in [`v16/spiral_v16_audit.md`](v16/spiral_v16_audit.md). This document is cited by content, not by line number: any previously registered reference written as `README:NN` points to the version of this document prior to its conversion to the "current state" positioning (the full text of the old version can be found in git history and `CHANGELOG.md`).
+
+
+
+
+
 # A negative-control ledger for multi-stage numerical pipelines, demonstrated on Ising/MERA
 # 一种用于多阶段数值流水线的负对照账本方法 **（以临界横场Ising链/张量网络MERA为例）**
 
