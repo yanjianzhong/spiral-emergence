@@ -462,7 +462,7 @@ cMERA 支路的高斯表述自检 **9/9 通过**。它可贵的不是通过率�
 
 ---
 
-## 目录结构
+## 附1：目录结构
 
 ```
 .
@@ -548,6 +548,7 @@ cMERA 支路的高斯表述自检 **9/9 通过**。它可贵的不是通过率�
     ├── _runall.log                # runner 最近一次日志（每次运行前把上一份归档为 _runall_<时间戳>.log）
     ├── _runall_v16.3_r1.log       # **冻结参考运行**（本文所有账本数字的出处）
     ├── _runall_v16.4_r4.log       # fast 档历史基线（16 条，848.2 s）——**不含**注册规模/守卫汇总行
+    ├── _runall_v16.8_1007.log     # full 档历史基线（28 条，4268.2 s）
     ├── data/                      # 缓存（沿用 _v13/_v14/_v15_cache）
     └── result/
         ├── spiral_v16_metrics.png # 指标汇总图（20 面板）
@@ -564,7 +565,7 @@ cMERA 支路的高斯表述自检 **9/9 通过**。它可贵的不是通过率�
 
 ---
 
-## 安装与依赖
+## 附2：安装依赖与如何复现
 
 要求 **Python 3.10+**（实测环境 **Python 3.13.9**）。依赖清单在 `v16/requirements.txt`，六个包**全部锁死版本**：`matplotlib==3.11.2`、`networkx==3.5`、`numpy==2.5.3`、`quimb==1.15.0`、`scipy==1.18.1`、`torch==2.9.0`。
 
@@ -572,6 +573,7 @@ cMERA 支路的高斯表述自检 **9/9 通过**。它可贵的不是通过率�
 git clone https://github.com/yanjianzhong/spiral-emergence.git
 cd spiral-emergence
 pip install -r requirements.txt
+
 
 # 核心七阶段流程（必须在 v16/ 目录下运行）
 cd v16
@@ -590,19 +592,6 @@ python _v16_freeze_check.py
 > ⚠️ **`_v16_run_all.py` 的退出码 3 不必然是回归** —— 有登记为 `expect_pass=False` 的**预期失败**条目（B2 探针 2、`b2_boson_control`、`claim_ledger.standalone`、`t6_l4bridge`），runner 判定它们"如预期失败"时**同样报 `EXIT=3`**。
 
 ---
-
-## 如何复现
-
-```bash
-# 1. 准备数据与种子
-# 仓库中 data 目录已包含预处理后数据。
-# 只有需要**重新生成同单位受控参考侧**时，才需调用此脚本（离线约 1154 s）：
-# python spiral_v15_prepare.py
-
-# 2. 运行核心模型（L1–L7）+ 指标与守卫
-cd v16
-python spiral_model_v16.py
-```
 
 - 结果写入 `v16/result/`（`_v16_data.json`、`spiral_v16_metrics.png` 等）
 - 审计表：`v16/spiral_v16_audit.md` ｜ 人话版导读：`v16/spiral_v16_说明.md`
@@ -629,7 +618,7 @@ python spiral_model_v16.py
 
 ### 外部数据源（可选对标）
 
-```
+```bash
 1. Southampton · BZ 油滴网络时空图（Figure_3/4/6.zip、Figure_S1/S2/S3.zip, D0363_readme.txt）
     https://doi.org/10.5258/SOTON/D0363      CC BY；配套论文 Sci. Rep. 2018, 10.1038/s41598-018-30819-6
     7 个压缩包；主包 Figure_S1 约 64MB，Figure_3 约 10MB
@@ -642,11 +631,17 @@ python spiral_model_v16.py
     https://zenodo.org/records/18345087
     NumPy npz；适合直接替换阶段六 v 场做"同模型不同参数"的结构对标
     优点：格式干净、2D 网格、可复现；缺点：不算"实验"，论文里只能叫数值基
+
+# 准备数据与种子
+# 仓库中 data 目录已包含预处理后数据。
+# 只有需要**重新生成同单位受控参考侧**时，才需调用此脚本（离线约 1154 s）：
+# cd v15 
+# python spiral_v15_prepare.py
 ```
 
 ---
 
-## 📄 许可证
+## 📄 附3：许可证
 
 | 资产类型 | 许可证 | 说明 |
 |---------|--------|------|
