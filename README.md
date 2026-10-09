@@ -571,16 +571,17 @@ cMERA 支路的高斯表述自检 **9/9 通过**。它可贵的不是通过率�
 ```bash
 git clone https://github.com/yanjianzhong/spiral-emergence.git
 cd spiral-emergence
+pip install -r requirements.txt
 
 # 核心七阶段流程（必须在 v16/ 目录下运行）
 cd v16
-pip install -r requirements.txt
 python spiral_model_v16.py > _v16_run.log 2>&1
 cat _v16_run.log
 
 # 冒烟 / 分档自检（默认 fast 20 条；slow 7 条；full 含同进程 claim_ledger）
-python _v16_run_all.py
-python _v16_run_all.py --list      # 看全部 28 条登记条目
+python _v16_run_all.py --list # 看全部 28 条登记条目
+python _v16_run_all.py --full # 执行全部27条自检 + full_pipeline&claim_ledger,预计用时4268.2 s
+
 
 # 冻结核对：v15 的 54 条计分守卫是否一条不少、无一翻面（按名字，不按逐位相等）
 python _v16_freeze_check.py
