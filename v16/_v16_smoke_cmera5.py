@@ -1,4 +1,15 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2024-2026 Jianzhong Yan
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 """
 _v16_smoke_cmera5.py —— v16 · 费米子 cMERA 生成元转录验证（K−1 的费米子对应物）
 

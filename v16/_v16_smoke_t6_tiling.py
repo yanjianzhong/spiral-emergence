@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2024-2026 Jianzhong Yan
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
 #
 r"""
 v16.8 · T6 · 阶段 1 —— `{7,3}` 双曲铺砌的有限补丁（Poincaré 圆盘，纯代数构造）

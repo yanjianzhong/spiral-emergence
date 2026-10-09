@@ -1,4 +1,15 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2024-2026 Jianzhong Yan
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 """_v16_smoke_cmera_d.py —— v16 · 方向 D: 离散尺度算符 L 的「有内容版」**及其否证**
 
 版本: v16-smoke-cmera-d-1（2026-09-26）

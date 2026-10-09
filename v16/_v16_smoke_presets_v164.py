@@ -1,4 +1,15 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2024-2026 Jianzhong Yan
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 """
 v16.4 · 预设层攻坚冒烟 —— α 三条 (D5 / D6 / D7)
 [_VERSION_TAG = 'v16-smoke-presets-v164-1']

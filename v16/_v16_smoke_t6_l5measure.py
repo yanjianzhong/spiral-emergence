@@ -1,4 +1,15 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2024-2026 Jianzhong Yan
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 """v16-smoke-t6-l5measure-1 -- 阶段 4（接 L5：几何测度）判据的**一次性执行**。
 
 判据来源（**逐字**照 `v16/v16.8_plan.md` §0.1.11，冻结于开跑前）：

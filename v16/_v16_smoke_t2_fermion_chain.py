@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2024-2026 Jianzhong Yan
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
 #
 """
 v16.6 · T2(b) —— L1→L2 的**自由费米子**通路：给 `S(L/2)` 造第二条独立实现

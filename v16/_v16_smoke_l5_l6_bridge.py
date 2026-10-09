@@ -1,4 +1,15 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright (c) 2024-2026 Jianzhong Yan
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 """
 v16 · L5->L6 空桥尝试 (§5.4)  [_VERSION_TAG = 'v16-smoke-l5l6-1']
 

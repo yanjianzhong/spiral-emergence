@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2024-2026 Jianzhong Yan
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
 #
 """
 v16.5 · 工作包 D12 —— 能谱族的「O(1/L) 有限尺寸修正」这条**归因**是真的吗？
