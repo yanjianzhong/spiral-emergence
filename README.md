@@ -1,6 +1,6 @@
 > **spiral-emergence: Negative-control ledger for multi-stage numerical pipelines**  
 > © 2024-2026 Jianzhong Yan — All commits DCO-signed (`Signed-off-by`).  
-> Version: v16.9 | Zenodo concept DOI (all versions): [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.8 DOI: [10.5281/zenodo.23137311](https://doi.org/10.5281/zenodo.23137311)
+> Version: v16.9 | Zenodo concept DOI (all versions): [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.9 DOI: [10.5281/zenodo.23278413](https://doi.org/10.5281/zenodo.23278413)
 >
 > **Note on naming.** This repository is named `spiral-emergence` for
 > historical reasons. The scientific contribution of this work is a
