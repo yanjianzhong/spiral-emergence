@@ -79,15 +79,14 @@ python _v16_freeze_check.py
 ```
 
 **Expected output summary (from frozen reference run `_runall_v16.3_r1.log`):**
-```bash
-Layer 1 (internal self-consistency): 6/6 met (2 diagnostic)
-Layer 2 (microscopic physical benchmark): 13/13 met
-Layer 3 (macroscopic structural benchmark): 0/0 (6 diagnostic)
-Total: 19/19 met
-Guard pass rate = 57/57 = 100.0% (21 diagnostic, 16 designed-to-fail)
-Coverage: 7/7 layers, no-control layers: [], 13 negative controls
-Registry: 27 indicators, 78 guards, 13 negative controls
-```
+- Layer 1 (internal self-consistency): 6/6 met (2 diagnostic)
+- Layer 2 (microscopic physical benchmark): 13/13 met
+- Layer 3 (macroscopic structural benchmark): 0/0 (6 diagnostic)
+- Total: 19/19 met
+- Guard pass rate = 57/57 = 100.0% (21 diagnostic, 16 designed-to-fail)
+- Coverage: 7/7 layers, no-control layers: [], 13 negative controls
+- Registry: 27 indicators, 78 guards, 13 negative controls
+
 
 ## Directory structure
 ```bash
