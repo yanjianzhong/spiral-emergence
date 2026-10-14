@@ -3,6 +3,10 @@
 > Version: v16.9 | Zenodo concept DOI (all versions): [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.9 DOI: [10.5281/zenodo.23278413](https://doi.org/10.5281/zenodo.23278413)
 >
 > **Note on naming.** The project does **not** claim to study spiral geometry or emergence phenomena. The repository name `spiral-emergence` is retained for historical reasons; the scientific contribution is the ledger methodology and its application to tensor-network benchmarks.
+>
+> **Document scope** This document describes only the current state of the codebase; version history is logged in [`CHANGELOG.md`](CHANGELOG.md). This document is cited by content, not by line number.
+
+
 
 <div align="center">
 
@@ -20,14 +24,26 @@ English | [简体中文](./README.zh.md)
 
 
 
-## Document scope
-
-This document describes only the current state of the codebase; version history is logged in [`CHANGELOG.md`](CHANGELOG.md). This document is cited by content, not by line number.
-
-
 ## Overview
 
 This repository implements a **negative-control ledger** for multi-stage numerical pipelines, demonstrated on a critical transverse-field Ising chain and tensor-network (MERA) benchmarks. The core idea is to equip each stage of a multi-stage numerical workflow with falsifiable negative controls, and to register every failure honestly.
+
+
+Multi-stage numerical pipelines are ubiquitous in computational physics: ground-state preparation feeds into entanglement extraction, which feeds into scaling-law fitting, which feeds into geometric or dynamical analysis. Each stage inherits the output—and the silent errors—of the previous one. Yet the standard practice for verifying such pipelines is ad hoc: isolated unit tests on individual stages, with no systematic mechanism to detect errors that propagate across stage boundaries.
+
+This paper introduces a negative-control ledger framework that addresses this gap. The core idea: for each stage in the pipeline, construct one or more controls that are designed to fail when the underlying claim is violated—then log every outcome, including failures. The framework provides:
+
+- **Per-stage negative controls** with pre-registered pass/fail criteria, not post-hoc sanity checks
+- **A completeness guard** that verifies every stage has at least one registered control
+- **An audit table** in which positive results, negative results, zero results, and "no object" (structurally inapplicable) entries are recorded at equal prominence
+
+We demonstrate the framework on two structurally distinct systems:
+
+1. **Critical transverse-field Ising chain** ($h/J = 1$, $c = 1/2$): Seven pipeline stages, each with negative controls, achieving full 7/7 coverage. The central charge is estimated by two independent estimator families (entanglement-spectrum and energy-spectrum), converging to 0.212% agreement. The ledger includes 78 guards, 27 metrics, and 13 registered negative controls.
+
+2. **AKLT chain**($S = 1$ VBS, Haldane gap, $c = 0$): A non-critical system with no CFT counterpart, added to test whether the framework generalizes beyond criticality. The gapped-system criterion correctly identifies $c = 0$ (open chain: exact zero; ring: 0.0036), and three negative controls (bond-dimension reduction, non-isometric injection, bidirectional isometry pairing) fail as designed—confirming the framework is neither a rubber stamp nor a blanket rejector.
+
+A distinctive feature of this work is its **discipline of honest boundaries**: every limitation—finite-size truncation, source-code-level defects in cited tensor network constructions, zero-result bridges between stages, parameter-dependent analytical claims—is registered in the audit table with the same visibility as positive results. We consider this rigor to be the contribution itself, not supplementary good practice.
 
 
 ## Key results (honest summary)
