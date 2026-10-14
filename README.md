@@ -1,3 +1,11 @@
+> **spiral-emergence: A negative-control ledger for multi-stage numerical pipelines**  
+> © 2024-2026 Jianzhong Yan — All commits DCO-signed (`Signed-off-by`).  
+> Version: v16.9 | Zenodo concept DOI (all versions): [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.9 DOI: [10.5281/zenodo.23278413](https://doi.org/10.5281/zenodo.23278413)
+>
+> **Note on naming.** The project does **not** claim to study spiral geometry or emergence phenomena. The repository name `spiral-emergence` is retained for historical reasons; the scientific contribution is the ledger methodology and its application to tensor-network benchmarks.
+
+<div align="center">
+
 # A negative-control ledger for multi-stage numerical pipelines, demonstrated on tensor-network benchmarks
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22810161.svg)](https://doi.org/10.5281/zenodo.22810161)
@@ -6,15 +14,11 @@
 [![Release](https://img.shields.io/github/v/release/yanjianzhong/spiral-emergence)](https://github.com/yanjianzhong/spiral-emergence/releases)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 
+</div>
+
 English | [简体中文](./README.zh.md)
 
-**Repository:** `spiral-emergence` (named for historical reasons; the scientific contribution is a negative-control ledger for multi-stage numerical pipelines)  
-**Version:** v16.9  
-**Zenodo concept DOI (all versions):** [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161)  
-**v16.9 DOI:** [10.5281/zenodo.23278413](https://doi.org/10.5281/zenodo.23278413)  
-**License:** [Apache 2.0](LICENSE)  
-**ORCID:** [0009-0007-0045-7114](https://orcid.org/0009-0007-0045-7114)  
-**DCO:** All commits DCO-signed (`Signed-off-by`)  
+
 
 ## Document scope
 
@@ -25,7 +29,6 @@ This document describes only the current state of the codebase; version history 
 
 This repository implements a **negative-control ledger** for multi-stage numerical pipelines, demonstrated on a critical transverse-field Ising chain and tensor-network (MERA) benchmarks. The core idea is to equip each stage of a multi-stage numerical workflow with falsifiable negative controls, and to register every failure honestly.
 
-The project does **not** claim to study spiral geometry or emergence phenomena. The repository name `spiral-emergence` is retained for historical reasons; the scientific contribution is the ledger methodology and its application to tensor-network benchmarks.
 
 ## Key results (honest summary)
 
