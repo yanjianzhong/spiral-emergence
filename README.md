@@ -1,4 +1,12 @@
 # A negative-control ledger for multi-stage numerical pipelines, demonstrated on tensor-network benchmarks
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22810161.svg)](https://doi.org/10.5281/zenodo.22810161)
+[![ORCID](https://img.shields.io/badge/ORCID-0009--0007--0045--7114-green?logo=orcid)](https://orcid.org/0009-0007-0045-7114)
+[![DCO](https://img.shields.io/badge/DCO-Signed-brightgreen.svg)](https://developercertificate.org/)
+[![Release](https://img.shields.io/github/v/release/yanjianzhong/spiral-emergence)](https://github.com/yanjianzhong/spiral-emergence/releases)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+
+English | [简体中文](./README.zh.md)
 
 **Repository:** `spiral-emergence` (named for historical reasons; the scientific contribution is a negative-control ledger for multi-stage numerical pipelines)  
 **Version:** v16.9  
@@ -12,7 +20,6 @@
 
 This document describes only the current state of the codebase; version history is logged in [`CHANGELOG.md`](CHANGELOG.md). This document is cited by content, not by line number.
 
-English | [简体中文](./README.zh.md)
 
 ## Overview
 
@@ -70,8 +77,9 @@ python _v16_run_all.py --full # run all 28 entries (~4268 s)
 #Freeze check: verify v15 guards unchanged
 python _v16_freeze_check.py
 ```
+
 **Expected output summary (from frozen reference run `_runall_v16.3_r1.log`):**
-```
+```bash
 Layer 1 (internal self-consistency): 6/6 met (2 diagnostic)
 Layer 2 (microscopic physical benchmark): 13/13 met
 Layer 3 (macroscopic structural benchmark): 0/0 (6 diagnostic)
@@ -82,7 +90,7 @@ Registry: 27 indicators, 78 guards, 13 negative controls
 ```
 
 ## Directory structure
-```
+```bash
 .
 ├── README.md # This file
 ├── CHANGELOG.md # Version history
@@ -135,8 +143,7 @@ All controls, guard assertions, and diagnostic items are registered in a runtime
 ## Citation
 
 If you use this software, please cite:
-```
-bibtex
+```bibtex
 @software{yan2026spiral,
     author = {Yan, JianZhong},
     title = {spiral-emergence: A negative-control ledger for multi-stage numerical pipelines},
