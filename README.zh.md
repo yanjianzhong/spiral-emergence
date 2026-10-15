@@ -1,23 +1,16 @@
-> **spiral-emergence: Negative-control ledger for multi-stage numerical pipelines**  
-> © 2024-2026 Jianzhong Yan — All commits DCO-signed (`Signed-off-by`).  
-> Version: v16.9 | Zenodo concept DOI (all versions): [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.9 DOI: [10.5281/zenodo.23278413](https://doi.org/10.5281/zenodo.23278413)
+> **spiral-emergence: 多阶段数值计算流水线的负控制台账**  
+> © 2024-2026 Jianzhong Yan — 所有提交均遵循开发者原创证书（DCO）签署（Signed-off-by）.  
+> Version: v16.9 | Zenodo 概念 DOI（所有版本）: [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.9 DOI: [10.5281/zenodo.23278413](https://doi.org/10.5281/zenodo.23278413)
 >
-> **Note on naming.** This repository is named `spiral-emergence` for
-> historical reasons. The scientific contribution of this work is a
-> **negative-control ledger for multi-stage numerical pipelines**,
-> demonstrated on an Ising/MERA case study. The project does not claim
-> to study spiral geometry or emergence phenomena. See the companion
-> manuscript for details.
+> 关于命名的说明：本仓库取名 `spiral-emergence` 是历史原因。这项工作的科学贡献是一个用于多阶段数值计算流水线的负控制台账，并在临界横场Ising链/张量网络MERA上示例，项目并不声称实现螺旋几何或涌现现象。
 >
-> **Document scope.** This document describes only the current state; it does not record version history — version evolution is logged in [`CHANGELOG.md`](CHANGELOG.md), and individual facts, criteria, and resolutions are in [`v16/spiral_v16_audit.md`](v16/spiral_v16_audit.md). This document is cited by content, not by line number: any previously registered reference written as `README:NN` points to the version of this document prior to its conversion to the "current state" positioning (the full text of the old version can be found in git history and `CHANGELOG.md`).
+> **文档范围说明：​** 本文档只描述当前状态，不记录版本演变历史——版本的迭代过程记在 [`CHANGELOG.md`](CHANGELOG.md)里, 而具体的各项事实、判定标准和解决方案则放在[`v16/spiral_v16_audit.md`](v16/spiral_v16_audit.md)中. 本文档按内容引用，而非按行号：任何之前注册过的、写作 `README:NN` 形式的引用，指向的都是本文档转换为"当前状态"定位之前的版本（旧版的完整文本可以在 git 历史和 `CHANGELOG.md` 中找到）。
 
 
 
 <div align="center">
 
-# A negative-control ledger for multi-stage numerical pipelines, demonstrated on Ising/MERA
-
-### 一种用于多阶段数值流水线的负对照账本方法 **（以临界横场Ising链/张量网络MERA为例）**
+# 多阶段数值流水线的负对照台账 **（以临界横场Ising链/张量网络MERA为例）**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22810161.svg)](https://doi.org/10.5281/zenodo.22810161)
@@ -65,23 +58,25 @@
 
 ### 系统概述
 
-```
-系统构建了一种全因果派生的闭环自举螺旋模型，在离散量子系统中实现了从微观涨落到宏观几何
-涌现的全链路自洽演化。
-以周期边界横场 Ising 模型在临界点（h/J=1）的基态为物理基石，通过约化密度矩阵的本征谱
-（Schmidt 系数平方）精确派生出自指动力学的幂迭代收敛率，建立了纠缠结构与递归收敛性的严
-格数学对应；采用 quimb 实现二进制 MERA 张量网络的变分优化，中心荷 c 由两族独立估计量
-给出 —— 纠缠谱族收敛至理论值 0.5 附近，能谱族在 L ≤ 16 相容到 0.212%（该读数不随 L 收敛），规避了能量目标导致的平均
-场塌缩；引入闭环螺旋自举算法，以实测关联长度 ξ 为尺度定向，驱动系统尺寸 L_t 更新，观测
-到无量纲比值 ξ/L 单调收敛（1.66 → 1.16，L=8→18），而关联长度本身发散，复现临界系统的
-标度律与谱隙闭合行为；通过 Jordan 块递归网络引入自指耦合，实测两类变体的秩1化行为截然
-不同 —— 变体 B 在全部 7 个 N 上稳定秩1化（5/5），变体 A 只在 N≥48 才秩1化（N≤17 一律
- 0/5），故阶段七走的 是 A 的"空无"支。
-全程贯彻诚实边界原则：七个阶段逐层建有负对照台账，实测覆盖 7/7 层，缺口为空（L4 与 L1
-两处缺口已补上）；对有限尺寸截断的成因（MERA 要求 L 为 2 的幂，**不是算力也不是对角化
-边界**）、键维收敛、相图依赖、第三层结构退化（φ=0.5 因等权基底退化为恒等式，有效判别
-维度是 4 而非 6）等效应严格量化，每项结论均有可验证的数值支撑与明确的诚实边界记录。
-```
+本仓库为多阶段数值计算流水线实现了一个**防错台账**（negative-control ledger），并在临界横场Ising链和张量网络（MERA）基准测试上进行了演示。
+
+这种多阶段流水线在计算物理里太常见了：基态制备完了喂给纠缠提取，再喂给标度律拟合，最后再喂给几何或动力学分析。问题是，每个环节都会把上一环节的输出，**包含了那些悄悄传下来的BUG一并继承**。但大家平时验证的方法比较随意：顶多在每个阶段单独跑跑单元测试，没有一个系统性的办法来抓那些**跨阶段传播的隐性错误**。
+
+该框架就是为了解决这个问题而生。核心思路很简单：给流水线的每个阶段都配上"故意让它出错"的控制项（falsifiable negative controls），然后把每次跑出来的结果——包括失败——都老老实实记下来。具体提供三样东西：
+
+- **逐阶段负控制**：标准是提前定好的（过/不过），不是跑完之后才临时编个理由说"看起来没问题"。
+- **完整性检查**：确保每个阶段至少挂了一个防错项，不漏掉任何一环。
+- **审计清单**：不管结果是"成了"、"没成"、"算出来是零"还是"这步根本不适用"，全都摆在同一个表格里，一视同仁，不藏着掖着。
+
+我们在两个结构不同的系统上演示该框架：
+
+1. **临界横场伊辛链**（$h/J = 1$，$c = 1/2$）：整条流水线七个阶段，每个阶段都配了防错项，实现了 7/7 全覆盖。中心电荷用两套独立的估计方法（纠缠谱和能谱）分别算，结果非常接近，只差 0.212%。整套台账一共跑了 78 个守卫检查、27 个度量指标、13 个注册的负控制项。
+
+2. **AKLT 链**（$S = 1$ VBS，霍尔丹能隙，$c = 0$）：这是一个非临界系统，没有 CFT 对应物，专门拿来测试框架能不能推广到非临界场景。带隙判据准确识别出了 $c = 0$（开链：精确为零；环：0.0036），而且三个负控制项（键维数缩减、非等距注入、双向等距配对）果然按预期失败了——这说明框架不是走过场，也不会乱报错。
+
+这项工作的一个显著特征是其**诚实边界的纪律**。不管是有限尺寸截断、引用文献里代码层面的缺陷、阶段之间算出来是零的"断桥"情况，还是依赖参数的分析声明——所有这些短板都跟正面结果一样，原原本本登记在审计表里，不遮掩。我认为这种严谨性本身就是贡献，而非补充性的良好实践。
+
+---
 
 ### 成熟度总览
 
