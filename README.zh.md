@@ -690,3 +690,19 @@ python _v16_freeze_check.py
 **版本引用**：论文/预印本请引用 Zenodo 版本 DOI；README 泛引请使用概念 DOI。
 
 **商标**："Spiral Emergence"及关联标识未经书面许可不得用于商业背书。
+
+---
+
+<br>
+
+<p align="center">
+  <i><b>变化以周期性偏振，统一于空无</b></i><br>
+  <i><b>增长以螺旋式上升，起始于终结</b></i>
+</p>
+
+<p align="center">
+  <sub><i>Change manifests as periodic polarization, unified in emptiness;</i></sub><br>
+  <sub><i>growth spirals upward, originating from the end.</i></sub>
+</p>
+
+<p align="center">— JianZhong Yan</p>
