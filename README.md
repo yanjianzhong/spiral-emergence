@@ -185,11 +185,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for DCO sign-off requirements and audit g
 <br>
 
 <p align="center">
-  <i><b>变化以周期性偏振，统一于空无</b></i><br>
-  <i><b>增长以螺旋式上升，起始于终结</b></i>
-</p>
-
-<p align="center">
   <sub><i>Change manifests as periodic polarization, unified in emptiness;</i></sub><br>
   <sub><i>growth spirals upward, originating from the end.</i></sub>
 </p>
