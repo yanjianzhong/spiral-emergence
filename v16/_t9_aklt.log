@@ -1,6 +1,6 @@
 ﻿==============================================================================
 v16.9 · T9 · 阶段 1 —— AKLT 精确构造 + oracle 族 O1–O6
-  v16-smoke-t9-aklt-3
+  v16-smoke-t9-aklt-4
   L = [8, 10, 12, 14, 16]   取向 = 周期环 + 开链
   TOL_PHYS = 1e-12   TOL_ISO = 1e-14   TOL_ASYM = 1e-06
   锚: v16.9_plan.md §2 阶段 1（判据事前写死）/ §1.2 / §5
@@ -158,7 +158,8 @@ v16.9 · T9 · 阶段 1 —— AKLT 精确构造 + oracle 族 O1–O6
   EXIT = 0（0 = 三支全落正支）
 
 [T9 隔离自检] 既有 `entanglement_curve` / `fit_central_charge` / `boundary_correlation_graph` **一行未改**；
-  未修 `entanglement_curve`（DP-T9-3）；未登记（阶段 4）；未进 runner（DP-T9-4）；
-  未加守卫与指标 ⇒ 规模三数 78 / 27 / 13 不动。
-用时: import 10.6 s + 本计算 4.0 s = 总计 14.6 s
+  未修 `entanglement_curve`（DP-T9-3）；未进 runner（DP-T9-4）；
+  v4 起四条诊断判据已注册进生产台账（audit §9.16，`expect_pass=False`）
+  ⇒ 守卫 78 → 82（诊断 21 → 25）；指标 27 / 负对照 13 不动；计分 57 不动。
+用时: import 10.3 s + 本计算 3.5 s = 总计 13.8 s
 ==============================================================================

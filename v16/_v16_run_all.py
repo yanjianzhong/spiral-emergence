@@ -580,12 +580,12 @@ def main():
     #    口径: **显式点名压过 tier 默认** —— tier 只在「没点名」时决定跑哪些。
     all_entries = _entries_for(full=True)
     entries = _entries_for(args.full)
-
     if args.list:
-        print(f"{'name':<26} {'tier':<5} {'expect':<7} {'exit':<4} {'timeout':>8}  note")
-        for e in all_entries:
+        print(f"{'#':<3} {'name':<26} {'tier':<5} {'expect':<7} {'exit':<4} {'timeout':>8}  note")
+        print('-' * 100)  # 打印分隔线
+        for i,e in enumerate(all_entries,1):
             exp = '通过' if e['expect_pass'] else '预期失败'
-            print(f"{e['name']:<26} {e['tier']:<5} {exp:<7} {e['expect_exit']:<4} "
+            print(f"{i:<3}{e['name']:<26} {e['tier']:<5} {exp:<7} {e['expect_exit']:<4} "
                   f"{e['timeout_s']:>7}s  {e['note'][:60]}")
         return 0
 

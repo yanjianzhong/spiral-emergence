@@ -13,9 +13,13 @@
 r"""
 v16.9 · T9 · AKLT 链负对照 —— 阶段 1 精确构造 + oracle O1–O6；
                           阶段 2 接代码台账（L2 面积律判别器）；阶段 3 负对照 N1–N3
-[_VERSION_TAG = 'v16-smoke-t9-aklt-3']
+[_VERSION_TAG = 'v16-smoke-t9-aklt-4']
 
 锚（文档锚）:
+  `v16/_model/aklt.py`  —— **v4 起**：本文件的全部原语（张量 / 截割收缩 / 转移矩阵 /
+    拟合）与四条诊断判据的唯一出处；本文件**真调不复制**（见文末「v4 变更」）
+  `v16.10_pre.md` §2    —— P1：四条诊断升格为 `record_guard` 体系内的诊断项（v4 的执行单）
+  `spiral_v16_audit.md` §9.16 —— v4 的登记（守卫 78 → 82；并列明未动的数）
   `v16.9_plan.md` §2 阶段 1 —— 判据与落支名**事前写死**在该节，本文件只执行
   `v16.9_plan.md` §1.2 —— 张量缺全局因子 `2/sqrt(3)`；`qtn.MPS` 在本环境不存在
   `v16.9_plan.md` §5    —— `d` 无关的截割熵函数（唯一新算法），规划期已与稠密 SVD 交叉核对
@@ -108,8 +112,11 @@ v16.9 · T9 · AKLT 链负对照 —— 阶段 1 精确构造 + oracle O1–O6�
     **一行都不改**（红线 4）—— 阶段 2 **只真调一次** `entanglement_curve` 并记录其失败；
     `fit_central_charge` / `boundary_correlation_graph` **不调**；
   - **不修** `entanglement_curve`（那是 DP-T9-3 的事）；不动 L5 的几何路径；
-  - **不登记**（阶段 4）；**不进 runner**（DP-T9-4）；不加守卫 / 指标
-    ⇒ 规模三数 **78 / 27 / 13 不动**；
+  - **不进 runner**（DP-T9-4 保持不变）；阶段 4 的**登记已在 v4 落地**：
+    四条诊断判据（gapped / N1 / N2 / N3）以 `expect_pass=False` 注册进
+    `_metric/main.py::collect_metrics_v16` 的**生产台账**，`source_id='T9_aklt'`
+    ⇒ 守卫 **78 → 82**（诊断 21 → 25）；**指标 27 / 负对照 13 不动**；
+    **计分 57 不动**（`expect_pass=False` 不进 `n_pass` / `n_expect`）；
   - **不造 3^L 稠密向量作为主路径**（L=20 需 51.96 GiB，超红线 1）；
     稠密态只在 L=6 自检与阶段 2 喂给 `entanglement_curve` 的那一次（L=8）上出现，
     主路径一律是 MPS 截割收缩 / 转移矩阵。
@@ -161,6 +168,27 @@ v16.9 · T9 · AKLT 链负对照 —— 阶段 1 精确构造 + oracle O1–O6�
   7. **本文件不声称「台账框架在非临界系统上已被验证」**：它只证明**一条**判据（`gapped`）
      在 AKLT 上**给出了事前已知的正确答案**，以及三条负对照在 AKLT 上**仍能失败**。
      七层覆盖、可复用性、「堵死审稿人」等结论**不在本文件范围内**。
+  8. **v4 变更（2026-10-15，v16.10·P1；同规则同容差，只搬家和接线）**：
+     (a) 全部原语 + 四条诊断判据搬到 `_model/aklt.py`，本文件改为**真调**（同名别名，
+         阶段 1 的打印因此逐字不变）；
+     (b) 阶段 2 / 阶段 3 的四条诊断**连带判据一起**改调
+         `_model/aklt.py::diagnostic_readings()` —— 与生产台账里那四条 `record_guard`
+         是**同一个调用**（此前判据在本文件里另写了一份，v4 起不再有第二份）；
+     (c) 那四条诊断以 `expect_pass=False` 注册进生产台账（守卫 78 → 82，计分 57 不动）。
+     **判据、容差、落支名、注入方式一个字没改**（计划 §4 红线 2）。
+     验收：v4 与冻结的 v3 日志逐行对拍，差异**只允许**出现在版本行、收尾行与用时行。
+     冻结副本 `_t9_aklt_v3_frozen_2026-10-15.log`（与 `_t9_aklt.log` 的 v3 原件同 SHA256）。
+
+======================================================================
+v4 变更（清单；判决见 audit §9.16）
+======================================================================
+  · 新文件 `v16/_model/aklt.py`：原语 + `iso_residual` + `diagnostic_readings()`，
+    `__all__` 列全；只 import numpy，不 import 本包其它模块、不打印、不登记。
+  · 本文件：删掉搬走的定义，改成 import；阶段 2/3 改读 `diagnostic_readings()`。
+  · `v16/_metric/main.py`：`collect_metrics_v16` 里新增四条 `record_guard`
+    （`expect_pass=False`、`source_id='T9_aklt'`）。
+  · `v16/_v16_claim_ledger.py`：`_SAME_SOURCE_REGISTRY` 增 `'T9_aklt'`（四名精确成员）。
+  · **未动**：`_v16_run_all.py`、任何既有守卫 / 指标、任何判据与容差、任何成熟度。
 """
 
 import os
@@ -182,122 +210,49 @@ except Exception as _exc:                                    # pragma: no cover
     _entanglement_curve = None
     _EC_IMPORT_ERR = _exc
 
+# v4 起：**全部原语 + 四条诊断判据的唯一出处**（做法同 T4 的 `_model/hyper.py`、
+# T5 的 `_model/tnr.py`：外部对照的实体住在 `_model/`，冒烟脚本真调不复制）。
+# 别名 `_原名` 只为让本文件下面的调用点**一行不动**，从而阶段 1 的打印逐字不变
+# （与 audit §9.15.1 登记的 v3 读数是同一批字节）。
+# 这里只取本文件**实际还用到**的名字；搬过去的那一整组（含 `_spin1` `_E` `_G`
+# `_powers` `_ring_bond_sum` `_open_bond_sum` `_c_scaling` 与 `UP` `DOWN`
+# `TOL_N2_P2` `N1_SEP`）现在只由 `_model/aklt.py` 自己用，`__all__` 里已列全。
+from _model.aklt import (                       # noqa: E402
+    A_tensors as _aklt_tensors,
+    bond_ops as _bond_ops,
+    block_tensors as _block_tensors,
+    schmidt_from_cut as _schmidt_from_cut,
+    S_of as _S_of,
+    cut_entropy as _cut_entropy,
+    bond_expect as _bond_expect,
+    ring_site_rdm as _ring_site_rdm,
+    state_norm2 as _state_norm2,
+    keep_only as _keep_only,
+    diagnostic_readings as _aklt_diagnostic_readings,
+    L_LIST, TOL_PHYS, TOL_ISO, TOL_ASYM,
+    KC, LN2, LN3, LN4, P_THRESH,
+    C_GAPPED, N2_EPS, TOL_N2_ISO,
+    BL, BR,
+)
+
 _T_IMPORT = time.time()
 _T0 = time.time()
 
-_VERSION_TAG = 'v16-smoke-t9-aklt-3'
+_VERSION_TAG = 'v16-smoke-t9-aklt-4'
 
-L_LIST = (8, 10, 12, 14, 16)
-TOL_PHYS = 1e-12        # 「期望为数值 0」的物理量
-TOL_ISO = 1e-14         # 「精确等距」
-TOL_ASYM = 1e-6         # 「渐近」量
-_CONS = 1e-14           # 内部一致性自检（比 TOL_PHYS 严）
-
-KC = 2.0 / np.sqrt(3.0)                      # 计划 §1.2b 的全局因子
-LN2 = float(np.log(2.0))
-LN3 = float(np.log(3.0))
-LN4 = float(np.log(4.0))
-P_THRESH = 1e-14                             # 谱截断（与规划期探针同一门限）
-
-C_GAPPED = 0.05        # 阶段 2：`_model/checks.py:345` 的 `gapped` 判据**原文照抄**
-N2_EPS = 0.05          # 阶段 3 N2 的注入强度（计划 §2 N2 行原文）
-TOL_N2_ISO = 1e-3      # 阶段 3 N2/N3：注入后等距残差的**下限**（判据原文）
-TOL_N2_P2 = 1e-4       # 阶段 3 N2：注入后 Σ⟨P_2⟩ 的**下限**（判据原文）
-N1_SEP = 0.5           # 阶段 3 N1：与同取向未注入基线的**最小**分离（判据原文）
-
-BL = np.array([1.0, 0.0], dtype=complex)     # 开链左边界 |↑⟩
-BR = np.array([0.0, 1.0], dtype=complex)     # 开链右边界 |↓⟩
-UP = np.array([1.0, 0.0], dtype=complex)     # |↑⟩（阶段 3 N2 的注入用）
-DOWN = np.array([0.0, 1.0], dtype=complex)   # |↓⟩
+# 常量与门限全部由上面的 import 块取回（唯一出处 `_model/aklt.py`），本文件不再各写一份。
+_CONS = 1e-14           # 内部一致性自检（比 TOL_PHYS 严）—— **仅本文件用**，不在 `_model/aklt.py`
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# 1. 精确张量
+# 1–3. 原语（张量 / 截割收缩 / 转移矩阵 / 拟合 / 注入）—— **v4 起已搬家**
 # ══════════════════════════════════════════════════════════════════════════
-def _aklt_tensors():
-    """AKLT (spin-1 VBS) 的精确 MPS 张量，**含全局因子 2/sqrt3**（计划 §1.2b）。
-
-    A^s = (2/sqrt3)·P^s·M。不补这个因子会让「等距性正对照」自己判成负结果
-    （sum_s A^{s†}A^s = (3/4)I，不是 I）。返回形状 (3, 2, 2)。
-    """
-    Pp = np.array([[1, 0], [0, 0]], dtype=complex)
-    P0 = np.array([[0, 1], [1, 0]], dtype=complex) / np.sqrt(2.0)
-    Pm = np.array([[0, 0], [0, 1]], dtype=complex)
-    M = np.array([[0, 1], [-1, 0]], dtype=complex) / np.sqrt(2.0)
-    return np.array([KC * (P @ M) for P in (Pp, P0, Pm)])
-
-
-def _spin1():
-    """自旋 1 的三个分量，基 |+1⟩, |0⟩, |−1⟩（与 `A` 的物理指标 0,1,2 同序）。"""
-    s2 = np.sqrt(2.0)
-    Sx = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=complex) / s2
-    Sy = np.array([[0, -1j, 0], [1j, 0, -1j], [0, 1j, 0]], dtype=complex) / s2
-    Sz = np.diag([1.0, 0.0, -1.0]).astype(complex)
-    return Sx, Sy, Sz
-
-
-def _bond_ops():
-    """两体算符（9x9，基 |s,t⟩，索引 i = 3s + t；排法 `Om[输出, 输入] = ⟨s't'|O|st⟩`）。
-
-    x  = S_i·S_{i+1}
-    P2 = 总自旋 2 的投影 = x²/6 + x/2 + 1/3      （S_tot² = 4 + 2x ⇒ Lagrange 插值）
-    h  = x + x²/3                                （计划 §2 O1 的**定义式**）
-    返回 (x, P2, h)。
-    """
-    Sx, Sy, Sz = _spin1()
-    x = np.kron(Sx, Sx) + np.kron(Sy, Sy) + np.kron(Sz, Sz)
-    I9 = np.eye(9, dtype=complex)
-    P2 = x @ x / 6.0 + x / 2.0 + I9 / 3.0
-    h = x + x @ x / 3.0
-    return x, P2, h
-
-
-# ══════════════════════════════════════════════════════════════════════════
-# 2. MPS 截割收缩（唯一新算法，d 无关；计划 §5）
-# ══════════════════════════════════════════════════════════════════════════
-def _block_tensors(A, n):
-    """L[a, b, idx] = (A^{s_1}···A^{s_n})[a, b]，idx 小端枚举 3^n 个位形。"""
-    dim = 3 ** n
-    out = np.zeros((2, 2, dim), dtype=complex)
-    for idx in range(dim):
-        x, m = idx, np.eye(2, dtype=complex)
-        for _ in range(n):
-            m = m @ A[x % 3]
-            x //= 3
-        out[:, :, idx] = m
-    return out
-
-
-def _schmidt_from_cut(Lt, Rt, periodic):
-    """截割处的 Schmidt 值（降序）。秩 ≤ 4（周期）/ ≤ 2（开链）⇒ 只需 4x4 以内的 SVD。
-
-    周期: psi = Σ_ab L^{ab} ⊗ R^{ba}     ⇒ U_{(ab)} = L^{ab},  W_{(ab)} = R^{ba}
-    开链: psi = Σ_b (Σ_a bl_a L^{ab}) ⊗ (Σ_c R^{bc} br_c)
-    对 U^T = Q_U R_U、W^T = Q_W R_W 做 QR ⇒ 谱 = svd(R_U R_W^T)。
-    """
-    if periodic:
-        U = Lt.reshape(4, -1)
-        W = np.transpose(Rt, (1, 0, 2)).reshape(4, -1)
-    else:
-        U = np.einsum('a,abz->bz', BL, Lt).reshape(2, -1)
-        W = np.einsum('abz,b->az', Rt, BR).reshape(2, -1)
-    _, Ru = np.linalg.qr(U.T)
-    _, Rw = np.linalg.qr(W.T)
-    return np.linalg.svd(Ru @ Rw.T, compute_uv=False)
-
-
-def _S_of(sv):
-    """von Neumann 熵（自然对数），由 Schmidt 值算。归一化与 SVD 的整体标度无关。"""
-    p = np.asarray(sv) ** 2
-    p = p / p.sum()
-    p = p[p > P_THRESH]
-    return float(-np.sum(p * np.log(p)))
-
-
-def _cut_entropy(A, L, n, periodic):
-    """S(n) = 前 n 个连续站点的 von Neumann 熵（**d 无关**路径，不造 3^L 稠密向量）。"""
-    return _S_of(_schmidt_from_cut(_block_tensors(A, n),
-                                   _block_tensors(A, L - n), periodic))
+# 唯一出处是 `v16/_model/aklt.py`：`A_tensors` `spin1` `bond_ops` `block_tensors`
+# `schmidt_from_cut` `S_of` `cut_entropy` `E` `G` `powers` `ring_bond_sum`
+# `open_bond_sum` `bond_expect` `ring_site_rdm` `iso_residual` `c_scaling`
+# `state_norm2` `keep_only`（见其 `__all__`）；
+# 本文件按上面的 import 块取回**实际用到**的那些，调用点名与 v3 逐字相同。
+# 留在这里的只有 `_triple_resid`（O4 判据的辅助）、第 4 节的稠密自检路径，与 `main()`。
 
 
 def _triple_resid(p):
@@ -308,75 +263,6 @@ def _triple_resid(p):
     a = max(abs(p[0] - p[1]), abs(p[1] - p[2]), abs(p[0] - p[2]))
     b = max(abs(p[1] - p[2]), abs(p[2] - p[3]), abs(p[1] - p[3]))
     return (a, '三重在上') if a <= b else (b, '单态在上')
-
-
-# ══════════════════════════════════════════════════════════════════════════
-# 3. 转移矩阵（两点 / 单点算符的精确期望值）
-# ══════════════════════════════════════════════════════════════════════════
-def _E(A):
-    """E[(a,a'),(b,b')] = Σ_s A^s_{ab} · conj(A^s_{a'b'})。（4x4）"""
-    return np.einsum('sab,sAB->aAbB', A, A.conj()).reshape(4, 4)
-
-
-def _G(A, Om):
-    """两点算符插入的转移矩阵（4x4）。
-
-    G[(a,a'),(d,d')] = Σ_{i,i'} Om[i',i]·B^i_{ad}·conj(B^{i'}_{a'd'})，B^i = A^s A^t。
-    """
-    B = np.einsum('sab,tbc->stac', A, A).reshape(9, 2, 2)
-    return np.einsum('ji,iad,jAD->aAdD', Om, B, B.conj()).reshape(4, 4)
-
-
-def _powers(E, L):
-    Ep = [np.eye(4, dtype=complex)]
-    for _ in range(L):
-        Ep.append(Ep[-1] @ E)
-    return Ep
-
-
-def _ring_bond_sum(A, L, Om):
-    """周期环: (Σ_{全部 L 个键} ⟨O_{i,i+1}⟩, ⟨ψ|ψ⟩) —— trace 形式，精确。"""
-    E = _E(A)
-    G = _G(A, Om)
-    Ep = _powers(E, L)
-    tot = np.trace(G @ Ep[L - 2])                       # 环绕键 (L, 1)
-    for i in range(1, L):                               # 键 (i, i+1), i = 1..L−1
-        tot += np.trace(Ep[i - 1] @ G @ Ep[L - 1 - i])
-    return complex(tot), complex(np.trace(Ep[L]))
-
-
-def _open_bond_sum(A, L, Om):
-    """开链: (Σ_{L−1 个键} ⟨O_{i,i+1}⟩, ⟨ψ|ψ⟩)。"""
-    E = _E(A)
-    G = _G(A, Om)
-    vL = np.outer(BL, BL.conj()).reshape(4)
-    vR = np.outer(BR, BR.conj()).reshape(4)
-    Ep = _powers(E, L)
-    tot = 0.0 + 0j
-    for i in range(1, L):
-        tot += vL @ Ep[i - 1] @ G @ Ep[L - 1 - i] @ vR
-    return complex(tot), complex(vL @ Ep[L] @ vR)
-
-
-def _bond_expect(A, L, Om, periodic):
-    """归一后的 Σ_键⟨O⟩（两个取向统一入口）。"""
-    tot, nrm = _ring_bond_sum(A, L, Om) if periodic else _open_bond_sum(A, L, Om)
-    return tot / nrm
-
-
-def _ring_site_rdm(A, L, site=1):
-    """周期环单点约化密度矩阵 ρ_{s,s'} = ⟨ψ| |s⟩⟨s'|_site |ψ⟩ / ⟨ψ|ψ⟩。"""
-    E = _E(A)
-    Ep = _powers(E, L)
-    nrm = np.trace(Ep[L])
-    rho = np.zeros((3, 3), dtype=complex)
-    for s in range(3):
-        for sp in range(3):
-            Qm = np.zeros((3, 3), dtype=complex)
-            Qm[s, sp] = 1.0                             # |s⟩⟨s'|
-            G1 = np.einsum('uv,vab,uAB->aAbB', Qm, A, A.conj()).reshape(4, 4)
-            rho[s, sp] = np.trace(Ep[site - 1] @ G1 @ Ep[L - site]) / nrm
-    return rho
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -413,48 +299,17 @@ def _dense_bond_exp(psi, Om, L, i, periodic):
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# 5. 阶段 2 / 阶段 3 的装置（沿用上面的截割熵与转移矩阵，**不新增算法**）
+# 5. 阶段 2 / 阶段 3 的判据 —— **v4 起整条取自 `_model/aklt.py::diagnostic_readings()`**
+#    与生产台账（`_metric/main.py::collect_metrics_v16` 里那四条 `record_guard`）
+#    **同一个调用、同一份判据**；本文件不再各写一份（见「v4 变更」）。
 # ══════════════════════════════════════════════════════════════════════════
-def _c_scaling(L_list, s_half):
-    """照 `v16/_model/checks.py:388-396` 的算式**逐行复刻**：S(L/2) = (c/3)·ln L + b。
-
-    返回 (c_scaling, b, r2, yb)。既有那段拟合内嵌在 `spectral_central_charge` 里、
-    入参是 TFI 的 J/h（模型专属），对 AKLT 无法直接调用 ⇒ 只能复刻算式（诚实边界 6）。
-    `r2` 在零方差下分母为 0、不可读，**不作判据**。
-    """
-    xL = np.log(np.array(L_list, dtype=float))
-    Ab = np.vstack([xL, np.ones_like(xL)]).T
-    yb = np.array(s_half, dtype=float)
-    cb, *_ = np.linalg.lstsq(Ab, yb, rcond=None)
-    rb = yb - Ab @ cb
-    den = float(((yb - yb.mean()) ** 2).sum())
-    r2 = float('nan') if den == 0.0 else 1.0 - float(rb @ rb) / den
-    return 3.0 * float(cb[0]), float(cb[1]), r2, yb
-
-
-def _state_norm2(A, L, periodic):
-    """未归一的 ⟨ψ|ψ⟩：环取 tr(E^L)，开链取 v_L^T E^L v_R（与 `_bond_expect` 同一范数）。"""
-    Ep = _powers(_E(A), L)
-    if periodic:
-        return complex(np.trace(Ep[L]))
-    vL = np.outer(BL, BL.conj()).reshape(4)
-    vR = np.outer(BR, BR.conj()).reshape(4)
-    return complex(vL @ Ep[L] @ vR)
-
-
-def _keep_only(A, k):
-    """只留第 k 个物理分量的张量（阶段 3 N1 的候选注入；k = 0/1/2 ⇔ A^+/A^0/A^-）。"""
-    Ak = np.zeros_like(A)
-    Ak[k] = A[k]
-    return Ak
-
-
 def _finish():
     """两个出口（阶段 1 就失败 / 三阶段都跑完）共用的收尾打印。"""
     print('\n[T9 隔离自检] 既有 `entanglement_curve` / `fit_central_charge` / '
           '`boundary_correlation_graph` **一行未改**；')
-    print('  未修 `entanglement_curve`（DP-T9-3）；未登记（阶段 4）；未进 runner（DP-T9-4）；')
-    print('  未加守卫与指标 ⇒ 规模三数 78 / 27 / 13 不动。')
+    print('  未修 `entanglement_curve`（DP-T9-3）；未进 runner（DP-T9-4）；')
+    print('  v4 起四条诊断判据已注册进生产台账（audit §9.16，`expect_pass=False`）')
+    print('  ⇒ 守卫 78 → 82（诊断 21 → 25）；指标 27 / 负对照 13 不动；计分 57 不动。')
     print('用时: import %.1f s + 本计算 %.1f s = 总计 %.1f s'
           % (_T_IMPORT - _T_PROC, time.time() - _T0, time.time() - _T_PROC))
     print('=' * 78)
@@ -526,7 +381,6 @@ def main():
     print('\n-- O1 / O1′：⟨H⟩ = −(2/3)·n_bonds 与 Σ_bonds⟨P_2⟩ = 0 --')
     print('  **第一号陷阱：⟨H⟩ ≠ 0。** 真正为零的是 Σ_bonds⟨P_2⟩。')
     o1 = []
-    base_p2 = {}                       # 未注入的 Σ⟨P_2⟩ 基线（阶段 3 N2 的对照）
     for per in (True, False):
         tag = '周期环' if per else '开链'
         print('  [%s]' % tag)
@@ -534,7 +388,6 @@ def main():
             nb = L if per else L - 1
             e_h = _bond_expect(A, L, h, per).real
             e_p2 = _bond_expect(A, L, P2, per).real
-            base_p2[(per, L)] = e_p2
             want = -(2.0 / 3.0) * nb
             d_h = abs(e_h - want)
             o1.append(('%s L=%d ⟨H⟩' % (tag, L), d_h, TOL_PHYS))
@@ -637,12 +490,16 @@ def main():
     print('\n' + '=' * 78)
     print('阶段 2 · 接代码台账：L2 面积律判别器 —— 照 `_model/checks.py:388-396` 拟合')
     print('=' * 78)
-    seq_open = [_cut_entropy(A, L, L // 2, False) for L in L_LIST]
-    seq_ring = [seq[L] for L in L_LIST]
+    # v4：阶段 2/3 的四条诊断（gapped / N1 / N2 / N3）**连判据一起**取自
+    # `_model/aklt.py::diagnostic_readings()` —— 与生产台账里那四条 `record_guard`
+    # 是**同一个调用**（真调不复制；见「v4 变更」）。
+    dr = _aklt_diagnostic_readings(L_LIST)
+    seq_open = list(dr['seq_open'])
+    seq_ring = list(dr['seq_ring'])
 
     print('\n-- [P2-1 / P2-2] S(L/2) = (c/3)·ln L + b  的 c_scaling --')
-    c_o, b_o, r2_o, _ = _c_scaling(L_LIST, seq_open)
-    c_r, b_r, r2_r, _ = _c_scaling(L_LIST, seq_ring)
+    c_o, b_o, r2_o = dr['gapped']['c_open'], dr['gapped']['b_open'], dr['gapped']['r2_open']
+    c_r, b_r, r2_r = dr['gapped']['c_ring'], dr['gapped']['b_ring'], dr['gapped']['r2_ring']
     p2 = []
     for tag, c, b, r2, y in (('开链', c_o, b_o, r2_o, seq_open),
                              ('环  ', c_r, b_r, r2_r, seq_ring)):
@@ -723,37 +580,26 @@ def main():
     print('     ⇒ **N1 只落在环上**：开链一格**结构性不可实现**（「无对象」，不是「判据不过」）；')
     print('       并加一条**有效性前置** ‖ψ‖² > 0，使零向量**不可能**再被静默判过。')
     print('       此为**并存订正**，已照实记入计划 §0.1.4；计划 §2 原文**一字未改**。')
-    A1 = _keep_only(A, 1)
-    for L in L_LIST:
-        f2 = _state_norm2(A1, L, True).real          # 有效性前置：零向量的熵无定义
-        s = _cut_entropy(A1, L, L // 2, True)
-        base = seq[L]
-        sep = abs(s - base)
-        _judge('N1 环 L=%2d' % L,
-               (f2 > 0.0) and (s < TOL_PHYS) and (sep > N1_SEP),
+    for (L, f2, s, base, sep, ok_L) in dr['n1']['per_L']:
+        _judge('N1 环 L=%2d' % L, ok_L,
                '‖ψ‖² = %.3e (>0) ; S(L/2) = %.3e (<1e-12) ; 与环基线 %.6f 的差 = %.6f (>0.5)'
                % (f2, s, base, sep))
 
     # ── N2 非酉注入 ─────────────────────────────────────────────────────
     print('\n-- N2 非酉注入 B[1] += %g·|↓⟩⟨↑| --' % N2_EPS)
-    B = A.copy()
-    B[1] = B[1] + N2_EPS * np.outer(DOWN, UP)
-    iso_n2 = float(np.max(np.abs(np.einsum('sba,sbc->ac', B.conj(), B) - np.eye(2))))
+    iso_n2 = dr['iso_n2']
     _judge('N2 等距残差 > 1e-3', iso_n2 > TOL_N2_ISO,
            'max‖Σ_s B^{s†}B^s − I‖ = %.6e' % iso_n2)
-    for per in (True, False):
+    for (per, L, base, e_p2, ok_L) in dr['n2']['per']:
         tg = '环  ' if per else '开链'
-        for L in L_LIST:
-            base = base_p2[(per, L)]
-            e_p2 = _bond_expect(B, L, P2, per).real
-            _judge('N2 %s L=%2d' % (tg, L), (abs(base) < TOL_PHYS) and (e_p2 > TOL_N2_P2),
-                   'Σ⟨P_2⟩ %+.3e → %+.6e  (基线 <1e-12 ; 注入后 >1e-4)' % (base, e_p2))
+        _judge('N2 %s L=%2d' % (tg, L), ok_L,
+               'Σ⟨P_2⟩ %+.3e → %+.6e  (基线 <1e-12 ; 注入后 >1e-4)' % (base, e_p2))
 
     # ── N3 等距性双向配对 ───────────────────────────────────────────────
     print('\n-- N3 等距性**双向**配对（O5 正对照 + N2 负对照）--')
     print('    正对照 O5 残差 = %.3e   （门限 %g，取自阶段 1）' % (iso, TOL_ISO))
     print('    负对照 N2 残差 = %.6e （门限 %g）' % (iso_n2, TOL_N2_ISO))
-    _judge('N3 两条须同时成立', (iso < TOL_ISO) and (iso_n2 > TOL_N2_ISO),
+    _judge('N3 两条须同时成立', dr['n3']['ok'],
            '⇒ 检查器既非橡皮图章（负对照真报错）、也非一律报错（正对照真归零）')
 
     b3 = 'T9-负对照三条齐' if not bad3 else 'T9-负对照缺陷'

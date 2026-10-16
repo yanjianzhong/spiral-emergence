@@ -16,6 +16,13 @@
 
 **纯移动产物**: 每个顶层单元按源码行号逐字切片, 函数体未改一字;
 改动只在靠 __file__ 推导的路径与 W11 源码扫描范围两处 (见门面说明)。
+
+**v16.10·P1 的第三处改动** (2026-10-15): `collect_metrics_v16` 新增四条
+`record_guard` —— T9 的 AKLT 外部对照 (gapped / N1 / N2 / N3),
+`expect_pass=False` + `source_id='T9_aklt'` ⇒ 只进诊断计数, **计分分母 57 不动**,
+守卫 78 → 82。为此新增一个**向下**的 import `from _model.aklt import
+diagnostic_readings` (`_metric` → `_model`; `_model/*` 不 import `_metric`,
+`_model/__init__` 只有 docstring ⇒ 无环)。登记见 audit §9.16。
 """
 
 import os
@@ -59,6 +66,12 @@ from _metric.solvers import (
 )
 from _metric.tier3 import tier3_structural_ladder
 from _metric.tier3_desc import _log_bin
+
+# v16.10·P1: 本文件第一次从 `_model` 取实体 —— 方向**向下**且无环 (`_model/*`
+# 不 import `_metric`; `_model/__init__` 只有 docstring)。取的是 AKLT 外部对照的
+# 四条诊断读数, T9 的判据**唯一出处**在那里, 与隔离冒烟脚本 `_v16_smoke_t9_aklt.py`
+# 是**同一个调用** (生产侧不重写第二份判据)。登记见 audit §9.16。
+from _model.aklt import diagnostic_readings as _aklt_diagnostic_readings
 
 
 
@@ -201,6 +214,40 @@ def collect_metrics_v16(ctx, KNOBS, _HERE, v13):
                       '—— 通过 != RT 被验证, 更 != 涌现时空 (B2 硬边界 '
                       '`spiral_model_v16.py:52-53`)。成熟度不动: L4 仍是 C。'
                       'MMI 与 SSA 不可互换引用: 后者是**自校验**, 前者才是判据。')
+
+    # —— v16.10·P1: T9 的 AKLT 外部对照 (v16.9 阶段 1–3 已实测; 登记见 audit §9.16)。
+    # `expect_pass=False` ⇒ 只进诊断计数, **不进 n_pass/n_expect** ⇒ 计分分母 57 不动,
+    # 守卫 78 → 82 (诊断 21 → 25)。**极性必须写清楚, 否则会读反**:
+    #   · V6/G8 是"设计上就该失败" (ok=False 才健康);
+    #   · 下面四条相反, 是"设计上应当答对 / 应当被检出" (ok=True 才健康) ⇒ **真能变红**。
+    # 为什么值得进生产台账: 本仓既有负对照与判据**全部**跑在临界横场 Ising 上,
+    # T9 补的是"**非临界**"那一格 (AKLT: 有能隙、面积律、无 CFT 对应), 且答案事前已知。
+    # 判据、容差、注入方式一个都没新造: `gapped` 的阈值是 `_model/checks.py:345` 原文。
+    _aklt = _aklt_diagnostic_readings()
+    record_guard('T9-AKLT gapped 判据', 'collect_metrics_v16',
+                 _aklt['gapped']['cond'], _aklt['gapped']['ok'],
+                 expect_pass=False, source_id='T9_aklt',
+                 note='阈值出自 `_model/checks.py:345` (`|c_scaling| < 0.05`), '
+                      '**不是本仓新选的数**。ok=True = 那条判据在非临界系统上'
+                      '**答对了**, **不是**"这条判据失败了"。'
+                      'R^2 不作判据 (零方差下不可读)。')
+    record_guard('T9-N1 键维向下对照', 'collect_metrics_v16',
+                 _aklt['n1']['cond'], _aklt['n1']['ok'],
+                 expect_pass=False, source_id='T9_aklt',
+                 note='χ:2→1 积态。**只落在环上**: 开链那一格结构性不可实现'
+                      '(只留任一张量 ⇒ 零向量, 熵无定义), 登记为"**无对象**"'
+                      '而非"判据不过", 故条数不含开链。'
+                      'ok=True = **注入被检出** (S 掉到 0 且与基线分离 > 0.5)。')
+    record_guard('T9-N2 非酉注入对照', 'collect_metrics_v16',
+                 _aklt['n2']['cond'], _aklt['n2']['ok'],
+                 expect_pass=False, source_id='T9_aklt',
+                 note='B[1] += 0.05·|↓⟩⟨↑|。ok=True = **注入被检出**'
+                      '(等距残差 > 1e-3 且 Σ⟨P_2⟩ 由 < 1e-12 抬到 > 1e-4)。')
+    record_guard('T9-N3 等距性双向配对', 'collect_metrics_v16',
+                 _aklt['n3']['cond'], _aklt['n3']['ok'],
+                 expect_pass=False, source_id='T9_aklt',
+                 note='**两条须同时成立**: O5 正对照真归零 **且** N2 负对照真报错 ——'
+                      '即"检查器既非橡皮图章、也非一律报错"。ok=True 才健康。')
 
     # ---------------- 第一层 ----------------
     print("\n  ── 第一层 · 内部自洽性 ──")

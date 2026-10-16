@@ -1,6 +1,6 @@
 > **spiral-emergence: A negative-control ledger for multi-stage numerical pipelines**  
-> © 2024-2026 Jianzhong Yan — All commits DCO-signed (`Signed-off-by`).  
-> Version: v16.9 | Zenodo concept DOI (all versions): [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.9 DOI: [10.5281/zenodo.23278413](https://doi.org/10.5281/zenodo.23278413)
+> © 2024-2026 JianZhong Yan — All commits DCO-signed (`Signed-off-by`).  
+> Version: v16.10 | Zenodo concept DOI (all versions): [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.9 version DOI (latest Zenodo release): [10.5281/zenodo.23278413](https://doi.org/10.5281/zenodo.23278413)
 >
 > **Note on naming.** The project does **not** claim to study spiral geometry or emergence phenomena. The repository name `spiral-emergence` is retained for historical reasons; the scientific contribution is the ledger methodology and its application to tensor-network benchmarks.
 >
@@ -38,9 +38,9 @@ This framework addresses that gap by equipping each stage with falsifiable negat
 
 We demonstrate the framework on two structurally distinct systems:
 
-1. **Critical transverse-field Ising chain** ($h/J = 1$, $c = 1/2$): Seven pipeline stages, each with negative controls, achieving full 7/7 coverage. The central charge is estimated by two independent estimator families (entanglement-spectrum and energy-spectrum), converging to 0.212% agreement. The ledger includes 78 guards, 27 metrics, and 13 registered negative controls.
+1. **Critical transverse-field Ising chain** ($h/J = 1$, $c = 1/2$): Seven pipeline stages, each with negative controls, achieving full 7/7 coverage. The central charge is estimated by two independent estimator families (entanglement-spectrum and energy-spectrum), converging to 0.212% agreement. The ledger includes 82 guards (57 scored + 25 diagnostic), 27 metrics, and 13 registered negative controls.
 
-2. **AKLT chain** ($S = 1$ VBS, Haldane gap, $c = 0$): A non-critical system with no CFT counterpart, added to test whether the framework generalizes beyond criticality. The gapped-system criterion correctly identifies $c = 0$ (open chain: exact zero; ring: 0.0036), and three negative controls (bond-dimension reduction, non-isometric injection, bidirectional isometry pairing) fail as designed—confirming the framework is neither a rubber stamp nor a blanket rejector.
+2. **AKLT chain** ($S = 1$ VBS, Haldane gap, $c = 0$): A non-critical system with no CFT counterpart, added to test whether the framework generalizes beyond criticality. The gapped-system criterion correctly identifies $c = 0$ (open chain: exact zero; ring: 0.0036), and three negative controls (bond-dimension reduction, non-isometric injection, bidirectional isometry pairing) fail as designed—confirming the framework is neither a rubber stamp nor a blanket rejector. Since v16.10 these four items are registered in the production ledger as diagnostic guards (`expect_pass=False`, outside the 57-point scored denominator), so every full-pipeline run re-checks them.
 
 A distinctive feature of this work is its **discipline of honest boundaries**: every limitation—finite-size truncation, source-code-level defects in cited tensor network constructions, zero-result bridges between stages, parameter-dependent analytical claims—is registered in the audit table with the same visibility as positive results. We consider this rigor to be the contribution itself, not supplementary good practice.
 
@@ -58,8 +58,8 @@ A distinctive feature of this work is its **discipline of honest boundaries**: e
 | L7 | Second-order self-reference (consciousness analog) | C | Variant B Jacobian spectral radius 0.9412 ≠ 1 (non-degenerate); analytic closed form holds at 12/12 points but parameter-dependent |
 
 **Ledger status (frozen full-pipeline run):**
-- Indicators: 19/19 met (27 registered, 8 diagnostic)
-- Guards: 57/57 passed (100.0%; 78 registered, 21 diagnostic)
+- Indicators: 19/19 met (27 indicators registered, 8 diagnostic)
+- Guards: 57/57 passed (100.0%; **82** registered, **25** diagnostic)
 - Negative controls: 13 (push-away 6 + null-model 1 + two-path 5 + upper-bound 1)
 - Coverage: 7/7 layers, gap `[]`
 
@@ -78,7 +78,7 @@ A distinctive feature of this work is its **discipline of honest boundaries**: e
 ```bash
 git clone https://github.com/yanjianzhong/spiral-emergence.git
 cd spiral-emergence
-pip install -r v16/requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Quick start
@@ -88,22 +88,29 @@ cd v16
 python spiral_model_v16.py > _v16_run.log 2>&1
 cat _v16_run.log
 
-#Smoke tests / self-checks (fast: 20, slow: 7, full: 1 = 28 total)
+#Smoke tests / self-checks ()
 python _v16_run_all.py --list # list all 28 registered entries
+
+python _v16_run_all.py --only [name] # [name]: entry name as listed by --list
+#Examples by --only (Backup the original `_runall.log`, rename it `_runall_yyyymmdd_hhmmss.log`, and generate a new `_runall.log`) 
+python _v16_run_all.py --only full_pipeline+claim_ledger # run full_pipeline+claim_ledger (~1732.2 s)
+
+# full: fast 20 + slow 7 + 'full_pipeline+claim_ledger'
 python _v16_run_all.py --full # run all 28 entries (~4268 s)
 
 #Freeze check: verify v15 guards unchanged
 python _v16_freeze_check.py
 ```
 
-**Expected output summary (from frozen reference run `_runall_v16.3_r1.log`):**
-- Layer 1 (internal self-consistency): 6/6 met (2 diagnostic)
-- Layer 2 (microscopic physical benchmark): 13/13 met
-- Layer 3 (macroscopic structural benchmark): 0/0 (6 diagnostic)
-- Total: 19/19 met
-- Guard pass rate = 57/57 = 100.0% (21 diagnostic, 16 designed-to-fail)
-- Coverage: 7/7 layers, no-control layers: [], 13 negative controls
-- Registry: 27 indicators, 78 guards, 13 negative controls
+**Expected output summary (from frozen reference run `_runall_v16.10_frozen_fp+cl.log`):**
+- Total: 19/19 met (27 indicators registered, 8 diagnostic)
+  - Layer 1 (internal self-consistency): 6/6 met (2 diagnostic)
+  - Layer 2 (microscopic physical benchmark): 13/13 met
+  - Layer 3 (macroscopic structural benchmark): 0/0 (6 diagnostic)
+- Guard pass rate: 57/57 = 100.0% (82 registered,25 diagnostic, 16 designed-to-fail)
+- Negative controls: 13 (push-away 6 + null-model 1 + two-path 5 + upper-bound 1)
+- Coverage: 7/7 layers, no-control layers: []
+- Registry: 27 indicators, 82 registered, 13 negative controls
 
 
 ## Directory structure
@@ -122,9 +129,11 @@ python _v16_freeze_check.py
 ├── spiral_model_v16.py # Facade → re-exports from _model/
 ├── spiral_metric_v16.py # Facade → re-exports from _metric/
 ├── requirements.txt
-├── _model/ # Core model code (11 .py files)
+├── _model/ # Core model code (13 .py files)
 │ ├── hyper.py # Hyperinvariant tensor network (not exported to facade)
-│ └── tnr.py # TNR (Evenbly–Vidal 2015) building blocks
+│ ├── tnr.py # TNR (Evenbly–Vidal 2015) building blocks
+│ ├── cft_mapping.py # L2 → CFT operator dictionary (annotations only)
+│ └── aklt.py # AKLT chain: exact χ=2 tensors + the four T9 diagnostics
 ├── _metric/ # Indicators and guards (9 .py files)
 ├── _baseline/ # Pre-split originals (frozen)
 ├── _v16_run_all.py # Single runner (fast/slow/full)
@@ -185,8 +194,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for DCO sign-off requirements and audit g
 <br>
 
 <p align="center">
-  <sub><i>Change manifests as periodic polarization, unified in emptiness;</i></sub><br>
-  <sub><i>growth spirals upward, originating from the end.</i></sub>
+  <i>Change manifests as periodic polarization, unified in emptiness;</i><br>
+  <i>growth spirals upward, originating from the end.</i>
 </p>
 
 <p align="center">— JianZhong Yan</p>

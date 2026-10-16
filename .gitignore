@@ -11,8 +11,7 @@ bash.exe.stackdump
 return
 
 # arxiv
-arXiv/
-APS/
+journal/
 spiral_model.egg-info/
 .vscode/
 
