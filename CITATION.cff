@@ -7,23 +7,23 @@ authors:
   - family-names: "Yan"
     given-names: "JianZhong"
     orcid: https://orcid.org/0009-0007-0045-7114
-version: v16.9
-date-released: 2026-10-10
+version: v16.10.0
+date-released: 2026-10-16
 repository-code: "https://github.com/yanjianzhong/spiral-emergence"
 license: Apache-2.0
 identifiers:
   - description: "Zenodo concept DOI (all versions)"
     type: doi
     value: "10.5281/zenodo.22810161"
-  - description: "Zenodo version DOI (v16.9)"
+  - description: "Zenodo version DOI (v16.10.0)"
     type: doi
-    value: "10.5281/zenodo.23278413"
+    value: "10.5281/zenodo.23409548"
 preferred-citation:
   type: software
   title: "spiral-emergence: Negative-control ledger for multi-stage numerical pipelines"
-  version: v16.9
-  date-released: 2026-10-04
-  doi: 10.5281/zenodo.23278413
+  version: v16.10.0
+  date-released: 2026-10-16
+  doi: 10.5281/zenodo.23409548
   authors:
     - family-names: "Yan"
       given-names: "JianZhong"

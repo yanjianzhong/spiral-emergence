@@ -1,6 +1,6 @@
 > **spiral-emergence: 多阶段数值计算流水线负对照台账**  
 > © 2024-2026 Jianzhong Yan — 所有提交均遵循开发者原创证书（DCO）签署（Signed-off-by）.  
-> Version: v16.10 | Zenodo 概念 DOI（所有版本）: [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.9 版本 DOI（Zenodo 上最新一次发布）: [10.5281/zenodo.23278413](https://doi.org/10.5281/zenodo.23278413)
+> Version: v16.10.0 | Zenodo 概念 DOI（所有版本）: [10.5281/zenodo.22810161](https://doi.org/10.5281/zenodo.22810161) | v16.10.0 版本 DOI（Zenodo 上最新一次发布）: [10.5281/zenodo.23409548](https://doi.org/10.5281/zenodo.23409548)
 >
 > 关于命名的说明：本仓库取名 `spiral-emergence` 是历史原因。这项工作的科学贡献是一个用于多阶段数值计算流水线的负对照台账，并在临界横场Ising链/张量网络MERA上示例，项目并不声称实现螺旋几何或涌现现象。
 >
@@ -709,8 +709,8 @@ python _v16_freeze_check.py
 </p>
 
 <p align="center">
-  <sub><i>Change manifests as periodic polarization, unified in emptiness;</i></sub><br>
-  <sub><i>growth spirals upward, originating from the end.</i></sub>
+  <i>Change manifests as periodic polarization, unified in emptiness;</i><br>
+  <i>growth spirals upward, originating from the end.</i>
 </p>
 
 <p align="center">— JianZhong Yan</p>
