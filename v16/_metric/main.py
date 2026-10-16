@@ -906,7 +906,7 @@ def plot_metrics_v16(metrics, s2, s3a, out_png):
     ax.set_ylabel('通过率 [%]')
     ax.set_title(f'十六 · 守卫通过率\n{g["n_pass"]}/{g["n_expect"]} = '
                  f'{g["rate"]:.1%} (诊断项 {g["n_diag"]} 条单列, 不计入分母;\n'
-                 f'分母 31→22 的拆解见 spiral_v13_说明.md §5)')
+                 f'分母 31→22)')
     for i, v in enumerate([g['rate'] * 100,
                            (g['n_diag'] - g['n_diag_notok'])
                            / max(g['n_diag'], 1) * 100]):

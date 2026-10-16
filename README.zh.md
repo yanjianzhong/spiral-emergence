@@ -579,8 +579,6 @@ cMERA 支路的高斯表述自检 **9/9 通过**。它可贵的不是通过率�
     │
     ├── spiral_v16_audit.md        # 【当前】七阶段事实审计表
     ├── spiral_v16_说明.md          # 【当前】中文说明（人话版导读）
-    ├── spiral_v16_preprint.tex    # 【当前】方法学预印本（v16 线）→ 配 spiral_v16_preprint.bib
-    ├── spiral_v16_preprint.bib
     ├── Hyper.tex / TNR.tex        # 原文源码快照（Hyper / TNR 判据的锚）
     ├── arXiv-1412.0732v3/ · arXiv-1704.04229v1/ · arXiv-2304.02732v2/   # 外部论文源码快照
     ├── _t6_l4bridge_frozen_2026-10-04.log / _t6_l5measure_frozen_2026-10-04.log   # 截断写前的原始冻结证据（原文件名 = 最近一次运行）
