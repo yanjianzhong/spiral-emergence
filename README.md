@@ -16,7 +16,7 @@
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0007--0045--7114-green?logo=orcid)](https://orcid.org/0009-0007-0045-7114)
 [![DCO](https://img.shields.io/badge/DCO-Signed-brightgreen.svg)](https://developercertificate.org/)
 [![Release](https://img.shields.io/github/v/release/yanjianzhong/spiral-emergence)](https://github.com/yanjianzhong/spiral-emergence/releases)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+
 
 </div>
 
@@ -63,17 +63,17 @@ A distinctive feature of this work is its **discipline of honest boundaries**: e
 - Negative controls: 13 (push-away 6 + null-model 1 + two-path 5 + upper-bound 1)
 - Coverage: 7/7 layers, gap `[]`
 
-## Requirements
+## Requirements 
 
 - **Python:** 3.10+ (tested on 3.13.9)
+  - [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 - **Dependencies** (pinned in `v16/requirements.txt`):
-  - `matplotlib==3.11.2`
-  - `networkx==3.5`
-  - `numpy==2.5.3`
-  - `quimb==1.15.0`
-  - `scipy==1.18.1`
-  - `torch==2.9.0`
-
+  - [![NumPy](https://img.shields.io/badge/NumPy-2.5.3-013243?logo=numpy&logoColor=white)](https://numpy.org/)
+  - [![SciPy](https://img.shields.io/badge/SciPy-1.18.1-8CAAE6?logo=scipy&logoColor=white)](https://scipy.org/)
+  - [![PyTorch](https://img.shields.io/badge/PyTorch-2.9.0-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+  - ![matplotlib](https://img.shields.io/badge/matplotlib-3.11.2-11557c)
+  - ![networkx](https://img.shields.io/badge/networkx-3.5-ff7f0e)
+  - ![quimb](https://img.shields.io/badge/quimb-1.15.0-9cf)
 ## Installation
 ```bash
 git clone https://github.com/yanjianzhong/spiral-emergence.git
