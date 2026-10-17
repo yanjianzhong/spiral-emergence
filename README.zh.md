@@ -606,8 +606,14 @@ cMERA 支路的高斯表述自检 **9/9 通过**。它可贵的不是通过率�
 
 ## 附2：安装依赖与如何复现
 
-要求 **Python 3.10+**（实测环境 **Python 3.13.9**）。依赖清单在 `v16/requirements.txt`，六个包**全部锁死版本**：`matplotlib==3.11.2`、`networkx==3.5`、`numpy==2.5.3`、`quimb==1.15.0`、`scipy==1.18.1`、`torch==2.9.0`。
+要求 **Python 3.10+**（实测环境 **Python 3.13.9**）。依赖清单在 `v16/requirements.txt`，共六个包**全部锁死版本**：
 
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)~[![NumPy](https://img.shields.io/badge/NumPy-2.5.3-013243?logo=numpy&logoColor=white)](https://numpy.org/)
+[![SciPy](https://img.shields.io/badge/SciPy-1.18.1-8CAAE6?logo=scipy&logoColor=white)](https://scipy.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.9.0-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+![matplotlib](https://img.shields.io/badge/matplotlib-3.11.2-11557c)
+![networkx](https://img.shields.io/badge/networkx-3.5-ff7f0e)
+![quimb](https://img.shields.io/badge/quimb-1.15.0-9cf)
 ```bash
 git clone https://github.com/yanjianzhong/spiral-emergence.git
 cd spiral-emergence
@@ -621,9 +627,13 @@ cat _v16_run.log
 
 # 冒烟 / 分档自检（默认 fast 20 条；slow 7 条；full 含同进程 claim_ledger）
 python _v16_run_all.py --list # 看全部 28 条登记条目
-python _v16_run_all.py --only [name]   # 执行指定的自检，[name]来自于--list输出的名字列
-python _v16_run_all.py --full # 执行全部27条自检 + full_pipeline&claim_ledger,预计用时4268.2 s
 
+python _v16_run_all.py --only [name]   # 执行指定的自检，[name]来自于--list输出的名字列
+#示例：--only (备份`_runall.log`,将其重命名为 `_runall_yyyymmdd_hhmmss.log`, 并生成新的`_runall.log`) 
+python _v16_run_all.py --only full_pipeline+claim_ledger # 只运行 full_pipeline+claim_ledger,预计用时1732.2 s
+
+# full: fast 20 + slow 7 + 'full_pipeline+claim_ledger'
+python _v16_run_all.py --full # 执行全部27条自检 + full_pipeline&claim_ledger,预计用时4268.2 s
 
 # 冻结核对：v15 的 54 条计分守卫是否一条不少、无一翻面（按名字，不按逐位相等）
 python _v16_freeze_check.py
@@ -639,24 +649,23 @@ python _v16_freeze_check.py
 
 ### 目标运行基线
 
+
 `EXIT=0`，**守卫 57/57 通过（100.0%）**，**指标 19/19 达标**，计分失败 **0** 条，覆盖 **7/7 层**；另有守卫侧 **25** 条诊断项（其中 **16** 条**设计上就该失败**，另 **9** 条是「答对 / 被检出才健康」的）与指标侧 8 条，在日志与审计表中**明确登记，非静默失败**。
 
 **预期输出摘要**（逐字抄自冻结参考运行 `_runall_v16.10_frozen_fp+cl.log`，供跑完后比对）：
 
-```text
-第1层 (内部自洽性): 达标 6/6   (另有诊断项 2 项)
-第2层 (微观物理对标): 达标 13/13
-第3层 (宏观结构对标): 达标 0/0   (另有诊断项 6 项)
-合计: 达标 19/19
-守卫通过率 = 57/57 = 100.0%   (另有诊断项 25 项, 其中未通过 16 项)
-实测覆盖 7/7 层, 无负对照的层: [], 共 13 条对照
-注册规模: 指标 27 条, 守卫 82 条, 负对照 13 条
-```
+
+- 第1层 (内部自洽性): 达标 6/6   (另有诊断项 2 项)
+- 第2层 (微观物理对标): 达标 13/13
+- 第3层 (宏观结构对标): 达标 0/0   (另有诊断项 6 项)
+- 合计: 达标 19/19
+- 守卫通过率 = 57/57 = 100.0%   (另有诊断项 25 项, 其中未通过 16 项)
+- 实测覆盖 7/7 层, 无负对照的层: [], 共 13 条对照
+- 注册规模: 指标 27 条, 守卫 82 条, 负对照 13 条
+
 
 > 本块其余各行不变。同进程复核见 `v16/spiral_v16_audit.md` §9.16.5。
 
-> **比对时只看合计与守卫那两行。** 第 3 层 `0/0` **不是失败** —— 该层 6 项全是诊断项，分母本来就是 0。
-> **上一版基线**（已冻结，仅作对照）：守卫 54/54、指标 18/18、覆盖 6/7 层（缺口 `['L1']`）、12 条对照，实测 **1245 s**；逐字日志见 `v15/_v15_run_frozen.out`。
 
 ### 外部数据源（可选对标）
 
